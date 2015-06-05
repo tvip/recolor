@@ -1,0 +1,19 @@
+syntax: glob
+
+build
+
+
+syntax: regexp
+
+# ignore hidden files (started from ".") exept of hg* files
+(^|[\\/])\.(?!(hg))
+
+# ignore ubuntu temporary files
+~$
+
+# Mac OS
+.DS_Store
+
+# kDevelop
+\.kdev4$
+
