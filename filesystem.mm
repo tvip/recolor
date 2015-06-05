@@ -27,7 +27,7 @@ std::string getAppDataPath()
   }
   
   [pool release];
-  return path;
+  return path + "/";
 }
 
 std::string exec(std::string cmd)
