@@ -5,16 +5,29 @@
 #include <glm/ext.hpp>
 
 #include <vector>
+#include <array>
 
-class Recolor {
+class ColorTransition {
   friend struct RecolorSimpleTest;
   
 public:
-  typedef const std::pair<glm::vec3,glm::vec3> transition;
+  typedef glm::vec3 rgb;
+  typedef glm::vec4 rgba;
+  typedef std::pair<rgb,rgb> transition;
+  typedef std::vector<std::vector<rgba> > image;
   
-  Recolor( const std::vector<transition> &transition );
+  ColorTransition( const std::vector<transition> &transition );
+  
+  image fromImage( const image &img );
+  glm::vec3 fromColor( const rgb &color );
   
 private:
-  const std::vector<const std::pair<glm::vec3,glm::vec3> > m_transition;
+  typedef std::array<unsigned,4> tetr;
+  static const float _accuracy = 0.001f;
+  
+  const std::vector<transition> m_transition;
+  std::vector<tetr> m_fill_tetrs;
+  
+  std::vector<std::vector<unsigned> > subset(unsigned n, unsigned offset);
   
 };

@@ -24,14 +24,16 @@ set( RES
   res/lowres.png
 )
 
-set( SRC
+set( ${PROJECT_NAME}_SRC
   recolor.hpp recolor.cpp
 )
+add_library( ${PROJECT_NAME}_object OBJECT ${${PROJECT_NAME}_SRC} )
 
 add_executable( ${PROJECT_NAME} MACOSX_BUNDLE
   main.cpp
   filesystem.hpp filesystem.mm
-  ${RES} ${SRC}
+  "$<TARGET_OBJECTS:${PROJECT_NAME}_object>"
+  ${RES}
 )
 
 target_link_libraries( ${PROJECT_NAME} ${libs} )
@@ -42,14 +44,20 @@ set_source_files_properties(
   MACOSX_PACKAGE_LOCATION Resources
 )
 
+file(GLOB ALL_SOURCES "*.h" "*.hpp" "*.c" "*.cpp" "*.m" "*.mm" )
+source_group( \\ FILES ${ALL_SOURCES} )
+
 message( STATUS "libs:" )
 foreach( _lib ${libs} )
     message( STATUS "  ${_lib}" )
 endforeach()
 
+enable_testing()
+include( CTest )
+
 find_package( Boost COMPONENTS log unit_test_framework REQUIRED )
 list( APPEND libs ${Boost_LIBRARIES} )
 
-add_executable( test-${PROJECT_NAME} test-recolor.cpp ${SRC} )
+add_executable( test-${PROJECT_NAME} test-recolor.cpp "$<TARGET_OBJECTS:${PROJECT_NAME}_object>" )
 add_test( NAME test-recolor COMMAND test-recolor --log_level=all )
 target_link_libraries( test-recolor ${libs} )
