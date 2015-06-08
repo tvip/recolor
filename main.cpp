@@ -1,11 +1,9 @@
 #include "filesystem.hpp"
 
+#include "recolor.hpp"
+
 #include <IL/il.h>
 #include <IL/ilu.h>
-
-#define GLM_FORCE_RADIANS 1
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
 
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>

@@ -12,7 +12,7 @@ include_directories( ${GLM_INCLUDE_DIRS} )
 find_package( DevIL REQUIRED )
 list( APPEND libs ${IL_LIBRARIES} ${ILU_LIBRARIES} )
 
-find_package( Boost COMPONENTS system thread log unit_test_framework REQUIRED )
+find_package( Boost COMPONENTS log REQUIRED )
 add_definitions( -DBOOST_LOG_DYN_LINK=1 )
 list( APPEND libs ${Boost_LIBRARIES} )
 
@@ -24,10 +24,14 @@ set( RES
   res/lowres.png
 )
 
+set( SRC
+  recolor.hpp recolor.cpp
+)
+
 add_executable( ${PROJECT_NAME} MACOSX_BUNDLE
   main.cpp
   filesystem.hpp filesystem.mm
-  ${RES}
+  ${RES} ${SRC}
 )
 
 target_link_libraries( ${PROJECT_NAME} ${libs} )
@@ -42,3 +46,10 @@ message( STATUS "libs:" )
 foreach( _lib ${libs} )
     message( STATUS "  ${_lib}" )
 endforeach()
+
+find_package( Boost COMPONENTS log unit_test_framework REQUIRED )
+list( APPEND libs ${Boost_LIBRARIES} )
+
+add_executable( test-${PROJECT_NAME} test-recolor.cpp ${SRC} )
+add_test( NAME test-recolor COMMAND test-recolor --log_level=all )
+target_link_libraries( test-recolor ${libs} )
