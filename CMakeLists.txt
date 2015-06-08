@@ -19,7 +19,10 @@ list( APPEND libs ${Boost_LIBRARIES} )
 find_library( Foundation_LIBRARY Foundation )
 list( APPEND libs ${Foundation_LIBRARY} )
 
-set( RES res/icons.png )
+set( RES
+  res/icons.png
+  res/lowres.png
+)
 
 add_executable( ${PROJECT_NAME} MACOSX_BUNDLE
   main.cpp
