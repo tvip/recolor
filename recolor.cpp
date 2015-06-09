@@ -67,8 +67,17 @@ void ColorTransition::intersection(const Tetr &A, const Tetr &B) const
   auto Bedge = subset(2, 0);
   auto Bface = subset(3, 0);
   
-  glm::vec4 vec(0,0,0,0);
-//  vec.d;
+  std::vector<glm::vec3> res;
+  glm::vec3 c;
+  
+  for (const Edge &edge : Aedge) {
+    for (const Face &face : Bface) {
+      if ( is_crossing(c, m_transition[edge[0]].first, m_transition[edge[1]].first,
+                       m_transition[face[0]].first, m_transition[face[1]].first, m_transition[face[2]].first) ) {
+        res.push_back(c);
+      }
+    }
+  }
 }
 
 bool ColorTransition::is_crossing(glm::vec3 &c, const glm::vec3 &e0, const glm::vec3 &e1, const glm::vec3 &f0, const glm::vec3 &f1, const glm::vec3 &f2)
