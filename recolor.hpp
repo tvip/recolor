@@ -22,8 +22,8 @@ public:
   
   ColorTransition( const std::vector<Transition> &transition );
   
-  Image fromImage( const Image &img );
-  glm::vec3 fromColor( const rgb &color );
+  Image fromImage( const Image &img ) const;
+  glm::vec3 fromColor( const rgb &color ) const;
   
 private:
   typedef std::vector<Transition> Tetr;
@@ -32,11 +32,11 @@ private:
   static const float _accuracy;
   
   const std::vector<Transition> m_transition;
-  std::vector<Tetr> m_fill_tetrs;
+  std::vector< std::vector< std::vector<Transition>::const_iterator > > m_fill_tetrs;
   
   static std::vector<std::vector<unsigned> > subset(unsigned n, unsigned offset, unsigned size);
   std::vector<Tetr> all_tetrs() const;
-  void fill_tetrs();
+  std::vector<Tetr> fill_tetrs() const;
   
   static bool competitable(const Tetr &A, const Tetr &B);
   static std::vector<glm::vec3> intersection(const Tetr &A, const Tetr &B);

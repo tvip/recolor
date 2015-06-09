@@ -80,6 +80,18 @@ BOOST_AUTO_TEST_CASE ( RecolorSubsetTest )
     BOOST_LOG_TRIVIAL(trace) << str;
   }
   
+  float V = 0;
+  for ( const std::vector< std::vector<T::Transition>::const_iterator > &t : recolor.m_fill_tetrs ) {
+    T::Tetr tetr;
+    tetr.push_back( T::Transition( *t[0] ) );
+    tetr.push_back( T::Transition( *t[1] ) );
+    tetr.push_back( T::Transition( *t[2] ) );
+    tetr.push_back( T::Transition( *t[3] ) );
+    V += T::volume( tetr );
+  }
+  
+  BOOST_CHECK_LT(glm::abs(V - 1), T::_accuracy);
+  BOOST_LOG_TRIVIAL(info) << "VOLUME : " << V;
 }
 
 BOOST_AUTO_TEST_CASE ( RecolorPleqCrossTest )
@@ -230,18 +242,17 @@ BOOST_AUTO_TEST_CASE ( RecolorFillTest )
   transition.push_back( T::Transition(glm::vec3(1,1,1),glm::vec3(1,1,1)) );
   
   T recolor(transition);
-  recolor.fill_tetrs();
-  BOOST_LOG_TRIVIAL(info) << "FILL : " << recolor.m_fill_tetrs.size();
+  BOOST_LOG_TRIVIAL(info) << "FILL : " << recolor.fill_tetrs().size();
   
   float V = 0;
-  for ( T::Tetr &t : recolor.m_fill_tetrs ) {
+  for ( T::Tetr &t : recolor.fill_tetrs() ) {
     V += T::volume(t);
   }
   
   BOOST_CHECK_LT(glm::abs(V - 1), T::_accuracy);
   BOOST_LOG_TRIVIAL(info) << "VOLUME : " << V;
   
-  for ( T::Tetr &t : recolor.m_fill_tetrs ) {
+  for ( T::Tetr &t : recolor.fill_tetrs() ) {
     std::string str;
     for( T::Transition &e : t ) {
       str = (boost::format("%s %s") %str %glm::to_string(e.first)).str();

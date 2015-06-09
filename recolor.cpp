@@ -11,9 +11,27 @@ const float ColorTransition::_accuracy = 0.001f;
 ColorTransition::ColorTransition( const std::vector<Transition> &transition )
 : m_transition(transition)
 {
-  //transition[0].first.r = 0;
+  std::vector<Tetr> tetrs = fill_tetrs();
+  m_fill_tetrs = std::vector< std::vector< std::vector<Transition>::const_iterator > >();
   
-  
+  for ( const Tetr &t : tetrs ) {
+    std::vector< std::vector<Transition>::const_iterator > I;
+    
+    for ( const Transition &c : t ) {
+      std::vector<Transition>::const_iterator Ci;
+      
+      for ( std::vector<Transition>::const_iterator transition = m_transition.begin(); transition != m_transition.end(); ++transition ) {
+        if ( glm::length(transition->first - c.first) < _accuracy ) {
+          Ci = transition;
+          break;
+        }
+      }
+      
+      I.push_back(Ci);
+    }
+    
+    m_fill_tetrs.push_back( I );
+  }
 }
 
 std::vector<std::vector<unsigned> > ColorTransition::subset(unsigned n, unsigned offset, unsigned size)
@@ -58,6 +76,7 @@ float ColorTransition::volume(const Tetr &t)
 
 std::vector<ColorTransition::Tetr> ColorTransition::all_tetrs() const
 {
+#warning TODO: добавить сортировку тетраэдров
   std::vector<ColorTransition::Tetr> res;
   for ( const Tetr &t : combos(4, m_transition) ) {
     if ( volume(t) > _accuracy )
@@ -66,16 +85,16 @@ std::vector<ColorTransition::Tetr> ColorTransition::all_tetrs() const
   return res;
 }
 
-void ColorTransition::fill_tetrs()
+std::vector<ColorTransition::Tetr> ColorTransition::fill_tetrs() const
 {
   std::vector<Tetr> tetrs = all_tetrs();
-  m_fill_tetrs = std::vector<Tetr>();
-  m_fill_tetrs.push_back(tetrs[0]);
+  std::vector<Tetr> res;
+  res.push_back(tetrs[0]);
   
   for ( unsigned i = 1; i < tetrs.size(); ++i ) {
     bool add = true;
     
-    for ( const Tetr &t : m_fill_tetrs ) {
+    for ( const Tetr &t : res ) {
       if ( !competitable(t, tetrs[i]) ) {
         add = false;
         break;
@@ -83,9 +102,11 @@ void ColorTransition::fill_tetrs()
     }
     
     if (add) {
-      m_fill_tetrs.push_back(tetrs[i]);
+      res.push_back(tetrs[i]);
     }
   }
+  
+  return res;
 };
 
 bool ColorTransition::competitable(const Tetr &A, const Tetr &B)
@@ -268,12 +289,24 @@ bool ColorTransition::inside(const glm::vec3 &O, const glm::vec3 &A, const glm::
   k.x + k.y + k.z < 1.f + _accuracy;
 }
 
-ColorTransition::Image ColorTransition::fromImage( const Image &img )
+ColorTransition::Image ColorTransition::fromImage( const Image &img ) const
 {
   
 }
 
-ColorTransition::rgb ColorTransition::fromColor( const rgb &color )
+ColorTransition::rgb ColorTransition::fromColor( const rgb &color ) const
 {
+  std::vector< std::vector< std::vector<Transition>::const_iterator > >::const_iterator tetr;
+  
+  for ( tetr = m_fill_tetrs.begin(); tetr != m_fill_tetrs.end(); ++tetr ) {
+    if ( inside(color, (*tetr)[0]->first, (*tetr)[1]->first, (*tetr)[2]->first, (*tetr)[3]->first) )
+      break;
+  }
+  
   
 }
+
+
+
+
+
