@@ -23,18 +23,18 @@ public:
   glm::vec3 fromColor( const rgb &color );
   
 private:
-  typedef std::vector<unsigned> Tetr;
-  typedef std::vector<unsigned> Face;
-  typedef std::vector<unsigned> Edge;
+  typedef std::vector<Transition> Tetr;
+  typedef std::vector<Transition> Face;
+  typedef std::vector<Transition> Edge;
   static const float _accuracy;
   
   const std::vector<Transition> m_transition;
   std::vector<Tetr> m_fill_tetrs;
   
-  std::vector<std::vector<unsigned> > subset(unsigned n, unsigned offset) const;
+  static std::vector<std::vector<unsigned> > subset(unsigned n, unsigned offset, unsigned size);
   std::vector<Tetr> all_tetrs();
   
-  void intersection(const Tetr &A, const Tetr &B) const;
+  std::vector<glm::vec3> intersection(const Tetr &A, const Tetr &B) const;
   
   /// вычисление уравнения плоскости по трём точкам
   static glm::vec4 pleq(const glm::vec3 &A, const glm::vec3 &B, const glm::vec3 &C);
@@ -50,5 +50,20 @@ private:
   
   /// Проверка на то, что отрезок пересекает треугольник, но не лежит в его плоскости
   static bool is_crossing(glm::vec3 &c, const glm::vec3 &e0, const glm::vec3 &e1, const glm::vec3 &f0, const glm::vec3 &f1, const glm::vec3 &f2);
+  
+  template <typename T>
+  static std::vector< std::vector<T> > combos(const unsigned n, const std::vector<T> &k)
+  {
+    std::vector< std::vector<T> > res;
+    
+    for ( std::vector<unsigned> s : subset(n,0,k.size()) ) {
+      std::vector<T> t;
+      for ( unsigned i = 0; i < n; ++i )
+        t.push_back( k[s[i]] );
+      res.push_back(t);
+    }
+    
+    return res;
+  }
   
 };

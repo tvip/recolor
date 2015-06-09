@@ -16,27 +16,27 @@ ColorTransition::ColorTransition( const std::vector<Transition> &transition )
   
 }
 
-std::vector<std::vector<unsigned> > ColorTransition::subset(unsigned n, unsigned offset) const
+std::vector<std::vector<unsigned> > ColorTransition::subset(unsigned n, unsigned offset, unsigned size)
 {
   std::vector<std::vector<unsigned> > res;
   
   if (n == 1) {
-    for (unsigned i=0; i<m_transition.size()-offset; ++i) {
+    for (unsigned i=0; i<size-offset; ++i) {
       std::vector<unsigned> set;
       set.push_back(i+offset);
       res.push_back(set);
     }
   }
   else {
-    for (const auto &s : subset(n-1, offset+1)) {
+    for (const auto &s : subset(n-1, offset+1, size)) {
       std::vector<unsigned> set;
       set.push_back(offset);
       set.insert(set.end(), s.begin(), s.end());
       res.push_back(set);
     }
     
-    if (n + offset < m_transition.size()) {
-      for (const auto &s : subset(n, offset+1)) {
+    if (n + offset < size) {
+      for (const auto &s : subset(n, offset+1, size)) {
         res.push_back(s);
       }
     }
@@ -48,32 +48,30 @@ std::vector<std::vector<unsigned> > ColorTransition::subset(unsigned n, unsigned
 
 std::vector<ColorTransition::Tetr> ColorTransition::all_tetrs()
 {
-#if 0
-  std::vector<Tetr> res;
-  for ( auto &v : subset(4,0) ) {
-    tetr t = {{v[0],v[1],v[2],v[3]}};
-    res.push_back(t);
-  }
-  return res;
-#else
-  return subset(4,0);
-#endif
+  return combos(4, m_transition);
 }
 
-void ColorTransition::intersection(const Tetr &A, const Tetr &B) const
+std::vector<glm::vec3> ColorTransition::intersection(const Tetr &A, const Tetr &B) const
 {
-  auto Aedge = subset(2, 0);
-  auto Aface = subset(3, 0);
-  auto Bedge = subset(2, 0);
-  auto Bface = subset(3, 0);
+  std::vector< std::vector<Transition> > Aedge = combos(2, A);
+  std::vector< std::vector<Transition> > Aface = combos(3, A);
+  std::vector< std::vector<Transition> > Bedge = combos(2, B);
+  std::vector< std::vector<Transition> > Bface = combos(3, B);
   
   std::vector<glm::vec3> res;
   glm::vec3 c;
   
   for (const Edge &edge : Aedge) {
     for (const Face &face : Bface) {
-      if ( is_crossing(c, m_transition[edge[0]].first, m_transition[edge[1]].first,
-                       m_transition[face[0]].first, m_transition[face[1]].first, m_transition[face[2]].first) ) {
+      if ( is_crossing(c, edge[0].first, edge[1].first, face[0].first, face[1].first, face[2].first) ) {
+        res.push_back(c);
+      }
+    }
+  }
+  
+  for (const Edge &edge : Bedge) {
+    for (const Face &face : Aface) {
+      if ( is_crossing(c, edge[0].first, edge[1].first, face[0].first, face[1].first, face[2].first) ) {
         res.push_back(c);
       }
     }

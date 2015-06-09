@@ -53,16 +53,16 @@ BOOST_AUTO_TEST_CASE ( RecolorSubsetTest )
   transition.push_back( T::Transition(glm::vec3(1,1,1),glm::vec3(1,1,1)) );
   
   T recolor(transition);
-  auto subset = recolor.subset(4, 0);
+  auto subset = recolor.subset(4, 0, transition.size());
   BOOST_LOG_TRIVIAL(info) << boost::format("SUBSET(4,%s): ") %subset.size();
   BOOST_LOG_TRIVIAL(info) << boost::format("COMBINATION(4,%s): ") %combination(transition.size(), 4);
   BOOST_CHECK_EQUAL(combination(transition.size(), 4), subset.size() );
   BOOST_CHECK_EQUAL(combination(transition.size(), 4), recolor.all_tetrs().size() );
   
-  for ( auto &t : recolor.all_tetrs() ) {
+  for ( T::Tetr &t : recolor.all_tetrs() ) {
     std::string str;
-    for( auto &e : t ) {
-      str = (boost::format("%s %s") %str %e).str();
+    for( T::Transition &e : t ) {
+      str = (boost::format("%s %s") %str %glm::to_string(e.first)).str();
     }
     BOOST_LOG_TRIVIAL(trace) << str;
   }
