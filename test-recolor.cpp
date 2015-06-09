@@ -40,6 +40,18 @@ BOOST_AUTO_TEST_CASE ( CombinationTest )
   BOOST_CHECK_EQUAL(combination(8, 4), 70);
 }
 
+BOOST_AUTO_TEST_CASE( RecolorVoloumeTest )
+{
+  T::Tetr t;
+  t.push_back( T::Transition(glm::vec3(0,0,0),glm::vec3()) );
+  t.push_back( T::Transition(glm::vec3(1,0,0),glm::vec3()) );
+  t.push_back( T::Transition(glm::vec3(0,1,0),glm::vec3()) );
+  t.push_back( T::Transition(glm::vec3(0,0,1),glm::vec3()) );
+  
+  BOOST_CHECK_LT(glm::abs(T::volume(t) - 0.167), T::_accuracy);
+  BOOST_LOG_TRIVIAL(trace) << "VOLUME : " << T::volume(t);
+}
+
 BOOST_AUTO_TEST_CASE ( RecolorSubsetTest )
 {
   std::vector<T::Transition > transition;
@@ -56,8 +68,9 @@ BOOST_AUTO_TEST_CASE ( RecolorSubsetTest )
   auto subset = recolor.subset(4, 0, transition.size());
   BOOST_LOG_TRIVIAL(info) << boost::format("SUBSET(4,%s): ") %subset.size();
   BOOST_LOG_TRIVIAL(info) << boost::format("COMBINATION(4,%s): ") %combination(transition.size(), 4);
+  BOOST_LOG_TRIVIAL(info) << boost::format("ALL TETRS : %s") %recolor.all_tetrs().size();
   BOOST_CHECK_EQUAL(combination(transition.size(), 4), subset.size() );
-  BOOST_CHECK_EQUAL(combination(transition.size(), 4), recolor.all_tetrs().size() );
+  BOOST_CHECK_EQUAL(recolor.all_tetrs().size(), 58 );
   
   for ( T::Tetr &t : recolor.all_tetrs() ) {
     std::string str;
@@ -123,9 +136,116 @@ BOOST_AUTO_TEST_CASE ( RecolorCrossingTest )
   
   BOOST_CHECK(!T::is_crossing(c, glm::vec3(0,0,0), glm::vec3(1,0,1),
                               glm::vec3(0,0,0), glm::vec3(1,0,1), glm::vec3(0,1,1)));
+  
+  BOOST_CHECK(T::is_crossing(c, glm::vec3(0,0,1), glm::vec3(1,1,0),
+                             glm::vec3(0,0,0), glm::vec3(1,0,0), glm::vec3(1,1,1)));
+  BOOST_CHECK_LT(glm::length(c - glm::vec3(0.5,0.5,0.5)), T::_accuracy );
+  BOOST_LOG_TRIVIAL(info) << "IS CROSSING : " << glm::to_string(c);
+  
+  BOOST_CHECK(T::is_crossing(c, glm::vec3(0,0,0), glm::vec3(1,0,1),
+                             glm::vec3(1,0,0), glm::vec3(0,1,0), glm::vec3(0,0,1)));
+  BOOST_CHECK_LT(glm::length(c - glm::vec3(0.5,0,0.5)), T::_accuracy );
+  BOOST_LOG_TRIVIAL(info) << "IS CROSSING : " << glm::to_string(c);
 }
 
 BOOST_AUTO_TEST_CASE ( RecolorIntersectionTest )
 {
+#if 1
+  T::Tetr A;
+  A.push_back( T::Transition(glm::vec3(0,0,0),glm::vec3()) );
+  A.push_back( T::Transition(glm::vec3(1,0,0),glm::vec3()) );
+  A.push_back( T::Transition(glm::vec3(0,0,1),glm::vec3()) );
+  A.push_back( T::Transition(glm::vec3(1,1,0),glm::vec3()) );
   
+  T::Tetr B;
+  B.push_back( T::Transition(glm::vec3(0,0,0),glm::vec3()) );
+  B.push_back( T::Transition(glm::vec3(1,0,0),glm::vec3()) );
+  B.push_back( T::Transition(glm::vec3(1,1,1),glm::vec3()) );
+  B.push_back( T::Transition(glm::vec3(1,1,0),glm::vec3()) );
+  
+  T::Tetr C;
+  C.push_back( T::Transition(glm::vec3(0,0,0),glm::vec3()) );
+  C.push_back( T::Transition(glm::vec3(1,0,0),glm::vec3()) );
+  C.push_back( T::Transition(glm::vec3(1,1,-1),glm::vec3()) );
+  C.push_back( T::Transition(glm::vec3(1,1,0),glm::vec3()) );
+  
+  std::vector<glm::vec3> I = T::intersection(A, B);
+  BOOST_CHECK_EQUAL(I.size(), 28);
+  BOOST_LOG_TRIVIAL(info) << "INTERSECTION : " << I.size();
+  
+  std::vector<glm::vec3> R = T::reduce(I);
+  BOOST_CHECK_EQUAL(R.size(), 4);
+  BOOST_LOG_TRIVIAL(info) << "REDUCE : " << R.size();
+//  for ( glm::vec3 i : R )
+//    BOOST_LOG_TRIVIAL(trace) << "INTERSECTION : " << glm::to_string(i);
+  
+  BOOST_CHECK(!T::competitable(A, B));
+  BOOST_CHECK(!T::competitable(A, A));
+  BOOST_CHECK(T::competitable(B, C));
+  BOOST_CHECK(T::competitable(A, C));
+#endif
+  
+#if 0
+  T::Tetr D;
+  D.push_back( T::Transition(glm::vec3(0,0,0),glm::vec3()) );
+  D.push_back( T::Transition(glm::vec3(0,1,0),glm::vec3()) );
+  D.push_back( T::Transition(glm::vec3(0,0,1),glm::vec3()) );
+  D.push_back( T::Transition(glm::vec3(0,1,1),glm::vec3()) );
+  
+  T::Tetr E;
+  E.push_back( T::Transition(glm::vec3(1,0,0),glm::vec3()) );
+  E.push_back( T::Transition(glm::vec3(0,1,0),glm::vec3()) );
+  E.push_back( T::Transition(glm::vec3(1,0,1),glm::vec3()) );
+  E.push_back( T::Transition(glm::vec3(1,1,1),glm::vec3()) );
+  
+  BOOST_CHECK(T::competitable(D, E));
+#endif
+  
+  T::Tetr M;
+  M.push_back( T::Transition(glm::vec3(0,0,0),glm::vec3()) );
+  M.push_back( T::Transition(glm::vec3(0,0,1),glm::vec3()) );
+  M.push_back( T::Transition(glm::vec3(0,1,0),glm::vec3()) );
+  M.push_back( T::Transition(glm::vec3(1,0,0),glm::vec3()) );
+  
+  T::Tetr N;
+  N.push_back( T::Transition(glm::vec3(0,0,0),glm::vec3()) );
+  N.push_back( T::Transition(glm::vec3(0,0,1),glm::vec3()) );
+  N.push_back( T::Transition(glm::vec3(0,1,1),glm::vec3()) );
+  N.push_back( T::Transition(glm::vec3(1,0,1),glm::vec3()) );
+  
+  std::vector<glm::vec3> I2 = T::intersection(M, N);
+  BOOST_CHECK( !T::competitable(M, N) );
+}
+
+BOOST_AUTO_TEST_CASE ( RecolorFillTest )
+{
+  std::vector<T::Transition > transition;
+  transition.push_back( T::Transition(glm::vec3(0,0,0),glm::vec3(0,0,0)) );
+  transition.push_back( T::Transition(glm::vec3(0,0,1),glm::vec3(0,0,1)) );
+  transition.push_back( T::Transition(glm::vec3(0,1,0),glm::vec3(0,1,0)) );
+  transition.push_back( T::Transition(glm::vec3(0,1,1),glm::vec3(0,1,1)) );
+  transition.push_back( T::Transition(glm::vec3(1,0,0),glm::vec3(1,0,0)) );
+  transition.push_back( T::Transition(glm::vec3(1,0,1),glm::vec3(1,0,1)) );
+  transition.push_back( T::Transition(glm::vec3(1,1,0),glm::vec3(1,1,0)) );
+  transition.push_back( T::Transition(glm::vec3(1,1,1),glm::vec3(1,1,1)) );
+  
+  T recolor(transition);
+  recolor.fill_tetrs();
+  BOOST_LOG_TRIVIAL(info) << "FILL : " << recolor.m_fill_tetrs.size();
+  
+  float V = 0;
+  for ( T::Tetr &t : recolor.m_fill_tetrs ) {
+    V += T::volume(t);
+  }
+  
+  BOOST_CHECK_LT(glm::abs(V - 1), T::_accuracy);
+  BOOST_LOG_TRIVIAL(info) << "VOLUME : " << V;
+  
+  for ( T::Tetr &t : recolor.m_fill_tetrs ) {
+    std::string str;
+    for( T::Transition &e : t ) {
+      str = (boost::format("%s %s") %str %glm::to_string(e.first)).str();
+    }
+    BOOST_LOG_TRIVIAL(trace) << boost::format("%s %s") %T::volume(t) %str;
+  }
 }

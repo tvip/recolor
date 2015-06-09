@@ -46,12 +46,77 @@ std::vector<std::vector<unsigned> > ColorTransition::subset(unsigned n, unsigned
   return res;
 }
 
-std::vector<ColorTransition::Tetr> ColorTransition::all_tetrs()
+float ColorTransition::volume(const Tetr &t)
 {
-  return combos(4, m_transition);
+  glm::vec3 A = t[0].first;
+  glm::vec3 B = t[1].first;
+  glm::vec3 C = t[2].first;
+  glm::vec3 D = t[3].first;
+  
+  return glm::abs( glm::dot(B-A, glm::cross(C-A, D-A) ) ) / 6.f;
 }
 
-std::vector<glm::vec3> ColorTransition::intersection(const Tetr &A, const Tetr &B) const
+std::vector<ColorTransition::Tetr> ColorTransition::all_tetrs() const
+{
+  std::vector<ColorTransition::Tetr> res;
+  for ( const Tetr &t : combos(4, m_transition) ) {
+    if ( volume(t) > _accuracy )
+      res.push_back(t);
+  }
+  return res;
+}
+
+void ColorTransition::fill_tetrs()
+{
+  std::vector<Tetr> tetrs = all_tetrs();
+  m_fill_tetrs = std::vector<Tetr>();
+  m_fill_tetrs.push_back(tetrs[0]);
+  
+  for ( unsigned i = 1; i < tetrs.size(); ++i ) {
+    bool add = true;
+    
+    for ( const Tetr &t : m_fill_tetrs ) {
+      if ( !competitable(t, tetrs[i]) ) {
+        add = false;
+        break;
+      }
+    }
+    
+    if (add) {
+      m_fill_tetrs.push_back(tetrs[i]);
+    }
+  }
+};
+
+bool ColorTransition::competitable(const Tetr &A, const Tetr &B)
+{
+  std::vector<glm::vec3> I = intersection(A, B);
+  
+  for ( Transition t : A )
+    I.push_back(t.first);
+  
+  for ( Transition t : B )
+    I.push_back(t.first);
+  
+  std::vector<glm::vec3> R = reduce(I);
+  unsigned shared = 0;
+  
+  for( glm::vec3 v : R ) {
+    if (inside(v, A[0].first, A[1].first, A[2].first, A[3].first) &&
+        inside(v, B[0].first, B[1].first, B[2].first, B[3].first))
+      ++shared;
+  }
+  
+  unsigned unique = R.size() - shared;
+  
+  return
+  ( R.size() == 8 && unique == 8 ) ||
+  ( R.size() == 7 && unique == 6 ) ||
+  ( R.size() == 6 && unique == 4 ) ||
+  ( R.size() == 5 && unique == 2 );
+}
+
+std::vector<glm::vec3> ColorTransition::intersection(const Tetr &A, const Tetr &B)
 {
   std::vector< std::vector<Transition> > Aedge = combos(2, A);
   std::vector< std::vector<Transition> > Aface = combos(3, A);
@@ -76,6 +141,35 @@ std::vector<glm::vec3> ColorTransition::intersection(const Tetr &A, const Tetr &
       }
     }
   }
+  
+  return res;
+}
+
+std::vector<glm::vec3> ColorTransition::reduce(const std::vector<glm::vec3> &V)
+{
+  std::vector<glm::vec3> res;
+  
+  if (V.size() > 0)
+    res.push_back(V[0]);
+  
+  for (unsigned i = 1; i < V.size(); ++i) {
+    bool add = true;
+    
+    for ( const auto &e : res ) {
+      
+      if ( glm::length(V[i] - e) < _accuracy ) {
+        add = false;
+        break;
+      }
+      
+    }
+    
+    if (add) {
+      res.push_back( V[i] );
+    }
+  }
+  
+  return res;
 }
 
 bool ColorTransition::is_crossing(glm::vec3 &c, const glm::vec3 &e0, const glm::vec3 &e1, const glm::vec3 &f0, const glm::vec3 &f1, const glm::vec3 &f2)

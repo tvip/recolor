@@ -5,11 +5,14 @@
 #include <vector>
 
 class ColorTransition {
+  friend struct RecolorVoloumeTest;
+  friend struct RecolorIntersectionTest;
   friend struct RecolorSubsetTest;
   friend struct RecolorPleqCrossTest;
   friend struct RecolorAsSummTest;
   friend struct RecolorInsideTest;
   friend struct RecolorCrossingTest;
+  friend struct RecolorFillTest;
   
 public:
   typedef glm::vec3 rgb;
@@ -32,9 +35,13 @@ private:
   std::vector<Tetr> m_fill_tetrs;
   
   static std::vector<std::vector<unsigned> > subset(unsigned n, unsigned offset, unsigned size);
-  std::vector<Tetr> all_tetrs();
+  std::vector<Tetr> all_tetrs() const;
+  void fill_tetrs();
   
-  std::vector<glm::vec3> intersection(const Tetr &A, const Tetr &B) const;
+  static bool competitable(const Tetr &A, const Tetr &B);
+  static std::vector<glm::vec3> intersection(const Tetr &A, const Tetr &B);
+  static std::vector<glm::vec3> reduce(const std::vector<glm::vec3> &V);
+  static float volume(const Tetr &t);
   
   /// вычисление уравнения плоскости по трём точкам
   static glm::vec4 pleq(const glm::vec3 &A, const glm::vec3 &B, const glm::vec3 &C);
