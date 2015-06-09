@@ -7,6 +7,7 @@ set( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" )
 
 find_package( GLM REQUIRED )
+add_definitions( -DGLM_FORCE_CXX98=1 -DGLM_FORCE_RADIANS=1 )
 include_directories( ${GLM_INCLUDE_DIRS} )
 
 find_package( DevIL REQUIRED )

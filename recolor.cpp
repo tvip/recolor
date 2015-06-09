@@ -1,10 +1,14 @@
 #include "recolor.hpp"
 
 #include <glm/glm.hpp>
+#include <glm/ext.hpp>
+
+#include <boost/format.hpp>
+#include <boost/log/trivial.hpp>
 
 const float ColorTransition::_accuracy = 0.001f;
 
-ColorTransition::ColorTransition( const std::vector<transition> &transition )
+ColorTransition::ColorTransition( const std::vector<Transition> &transition )
 : m_transition(transition)
 {
   //transition[0].first.r = 0;
@@ -12,7 +16,7 @@ ColorTransition::ColorTransition( const std::vector<transition> &transition )
   
 }
 
-std::vector<std::vector<unsigned> > ColorTransition::subset(unsigned n, unsigned offset)
+std::vector<std::vector<unsigned> > ColorTransition::subset(unsigned n, unsigned offset) const
 {
   std::vector<std::vector<unsigned> > res;
   
@@ -42,17 +46,21 @@ std::vector<std::vector<unsigned> > ColorTransition::subset(unsigned n, unsigned
   return res;
 }
 
-std::vector<ColorTransition::tetr> ColorTransition::all_tetrs()
+std::vector<ColorTransition::Tetr> ColorTransition::all_tetrs()
 {
-  std::vector<ColorTransition::tetr> res;
+#if 0
+  std::vector<Tetr> res;
   for ( auto &v : subset(4,0) ) {
     tetr t = {{v[0],v[1],v[2],v[3]}};
     res.push_back(t);
   }
   return res;
+#else
+  return subset(4,0);
+#endif
 }
 
-void ColorTransition::intersection(ColorTransition::tetr A, ColorTransition::tetr B)
+void ColorTransition::intersection(const Tetr &A, const Tetr &B) const
 {
   auto Aedge = subset(2, 0);
   auto Aface = subset(3, 0);
@@ -61,6 +69,32 @@ void ColorTransition::intersection(ColorTransition::tetr A, ColorTransition::tet
   
   glm::vec4 vec(0,0,0,0);
 //  vec.d;
+}
+
+bool ColorTransition::is_crossing(glm::vec3 &c, const glm::vec3 &e0, const glm::vec3 &e1, const glm::vec3 &f0, const glm::vec3 &f1, const glm::vec3 &f2)
+{
+#if 0
+  const glm::vec3 &e0 = m_transition[edge[0]].first;
+  const glm::vec3 &e1 = m_transition[edge[1]].first;
+  const glm::vec3 &f0 = m_transition[face[0]].first;
+  const glm::vec3 &f1 = m_transition[face[1]].first;
+  const glm::vec3 &f2 = m_transition[face[2]].first;
+#endif
+  
+  glm::vec4 eq = pleq(f0, f1, f2);
+  
+  if (!cross(c, e0, e1, eq))
+    return false;
+  
+  glm::vec3 p = glm::vec3(eq.x,eq.y,eq.z);
+  glm::vec3 k;
+  
+  return
+  as_summ( k, c - f0, f1 - f0, f2 - f0, p ) &&
+  glm::length(e0 - c) < glm::length(e0 - e1) + _accuracy &&
+  glm::length(e1 - c) < glm::length(e0 - e1) + _accuracy &&
+  k.x > -_accuracy && k.y > -_accuracy &&
+  k.x + k.y + glm::abs(k.z) < 1.f + _accuracy;
 }
 
 glm::vec4 ColorTransition::pleq(const glm::vec3 &A, const glm::vec3 &B, const glm::vec3 &C)
@@ -74,22 +108,66 @@ glm::vec4 ColorTransition::pleq(const glm::vec3 &A, const glm::vec3 &B, const gl
    );
 }
 
-glm::vec3 ColorTransition::cross(const glm::vec3 &M, const glm::vec3 &N, const glm::vec4 &P)
+bool ColorTransition::cross(glm::vec3 &C, const glm::vec3 &M, const glm::vec3 &N, const glm::vec4 &P)
 {
-  return glm::vec3
-  (
-   -(M.x*P.w - N.x*P.w + M.x*N.y*P.y - M.y*N.x*P.y + M.x*N.z*P.z - M.z*N.x*P.z)
-   / (M.x*P.x + M.y*P.y + M.z*P.z - N.x*P.x - N.y*P.y - N.z*P.z),
-   
-   -(M.y*P.w - N.y*P.w - M.x*N.y*P.x + M.y*N.x*P.x + M.y*N.z*P.z - M.z*N.y*P.z)
-   / (M.x*P.x + M.y*P.y + M.z*P.z - N.x*P.x - N.y*P.y - N.z*P.z),
-   
-   -(M.z*P.w - N.z*P.w - M.x*N.z*P.x + M.z*N.x*P.x - M.y*N.z*P.y + M.z*N.y*P.y)
-   / (M.x*P.x + M.y*P.y + M.z*P.z - N.x*P.x - N.y*P.y - N.z*P.z)
-   );
+  bool ok;
+  const float denom = M.x*P.x + M.y*P.y + M.z*P.z - N.x*P.x - N.y*P.y - N.z*P.z;
+  
+  if (denom != 0) {
+    ok = true;
+    C = glm::vec3
+    (
+     -( M.x*P.w - N.x*P.w + M.x*N.y*P.y - M.y*N.x*P.y + M.x*N.z*P.z - M.z*N.x*P.z ) / denom,
+     -( M.y*P.w - N.y*P.w - M.x*N.y*P.x + M.y*N.x*P.x + M.y*N.z*P.z - M.z*N.y*P.z ) / denom,
+     -( M.z*P.w - N.z*P.w - M.x*N.z*P.x + M.z*N.x*P.x - M.y*N.z*P.y + M.z*N.y*P.y ) / denom
+     );
+  }
+  else {
+    ok = false;
+  }
+  
+  return ok;
 }
 
-ColorTransition::image ColorTransition::fromImage( const image &img )
+bool ColorTransition::as_summ(glm::vec3 &K, const glm::vec3 &D, const glm::vec3 &A, const glm::vec3 &B, const glm::vec3 &C)
+{
+  bool ok;
+  const float denom = A.x*B.y*C.z - A.x*B.z*C.y - A.y*B.x*C.z + A.y*B.z*C.x + A.z*B.x*C.y - A.z*B.y*C.x;
+  
+  if (denom != 0) {
+    ok = true;
+    K = glm::vec3
+    (
+     ( B.x*C.y*D.z - B.x*C.z*D.y - B.y*C.x*D.z + B.y*C.z*D.x + B.z*C.x*D.y - B.z*C.y*D.x ) / denom,
+     -( A.x*C.y*D.z - A.x*C.z*D.y - A.y*C.x*D.z + A.y*C.z*D.x + A.z*C.x*D.y - A.z*C.y*D.x ) / denom,
+     ( A.x*B.y*D.z - A.x*B.z*D.y - A.y*B.x*D.z + A.y*B.z*D.x + A.z*B.x*D.y - A.z*B.y*D.x ) / denom
+     );
+  }
+  else {
+    ok = false;
+  }
+  
+  return ok;
+}
+
+bool ColorTransition::inside(const glm::vec3 &O, const glm::vec3 &A, const glm::vec3 &B, const glm::vec3 &C, const glm::vec3 &D)
+{
+  glm::vec3 k;
+//  BOOST_LOG_TRIVIAL(trace) << "INSIDE : " << glm::to_string(O-A);
+//  BOOST_LOG_TRIVIAL(trace) << "INSIDE : " << glm::to_string(B-A);
+//  BOOST_LOG_TRIVIAL(trace) << "INSIDE : " << glm::to_string(C-A);
+//  BOOST_LOG_TRIVIAL(trace) << "INSIDE : " << glm::to_string(D-A);
+//  BOOST_LOG_TRIVIAL(trace) << "INSIDE : " << glm::to_string(k);
+  
+  return
+  as_summ(k, O-A, B-A, C-A, D-A) &&
+  k.x > -_accuracy &&
+  k.y > -_accuracy &&
+  k.z > -_accuracy &&
+  k.x + k.y + k.z < 1.f + _accuracy;
+}
+
+ColorTransition::Image ColorTransition::fromImage( const Image &img )
 {
   
 }

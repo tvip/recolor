@@ -1,40 +1,54 @@
 #pragma once
 
-#define GLM_FORCE_CXX98 1
-#define GLM_FORCE_RADIANS 1
 #include <glm/fwd.hpp>
 
 #include <vector>
-#include <array>
 
 class ColorTransition {
   friend struct RecolorSubsetTest;
   friend struct RecolorPleqCrossTest;
+  friend struct RecolorAsSummTest;
+  friend struct RecolorInsideTest;
+  friend struct RecolorCrossingTest;
   
 public:
   typedef glm::vec3 rgb;
   typedef glm::vec4 rgba;
-  typedef std::pair<rgb,rgb> transition;
-  typedef std::vector<std::vector<rgba> > image;
+  typedef std::pair<rgb,rgb> Transition;
+  typedef std::vector<std::vector<rgba> > Image;
   
-  ColorTransition( const std::vector<transition> &transition );
+  ColorTransition( const std::vector<Transition> &transition );
   
-  image fromImage( const image &img );
+  Image fromImage( const Image &img );
   glm::vec3 fromColor( const rgb &color );
   
 private:
-  typedef std::array<unsigned,4> tetr;
+  typedef std::vector<unsigned> Tetr;
+  typedef std::vector<unsigned> Face;
+  typedef std::vector<unsigned> Edge;
   static const float _accuracy;
   
-  const std::vector<transition> m_transition;
-  std::vector<tetr> m_fill_tetrs;
+  const std::vector<Transition> m_transition;
+  std::vector<Tetr> m_fill_tetrs;
   
-  std::vector<std::vector<unsigned> > subset(unsigned n, unsigned offset);
-  std::vector<tetr> all_tetrs();
+  std::vector<std::vector<unsigned> > subset(unsigned n, unsigned offset) const;
+  std::vector<Tetr> all_tetrs();
   
+  void intersection(const Tetr &A, const Tetr &B) const;
+  
+  /// вычисление уравнения плоскости по трём точкам
   static glm::vec4 pleq(const glm::vec3 &A, const glm::vec3 &B, const glm::vec3 &C);
-  static glm::vec3 cross(const glm::vec3 &M, const glm::vec3 &N, const glm::vec4 &P);
   
-  void intersection(tetr A, tetr B);
+  /// пересечение прямой заданной двумя точками и плоскости
+  static bool cross(glm::vec3 &C, const glm::vec3 &M, const glm::vec3 &N, const glm::vec4 &P);
+  
+  /// Разложение вектора на сумму трёх векторов
+  static bool as_summ(glm::vec3 &K, const glm::vec3 &D, const glm::vec3 &A, const glm::vec3 &B, const glm::vec3 &C);
+  
+  /// Проверка на то, что точка внутри тетраэдра, включая грани и вершины
+  static bool inside(const glm::vec3 &O, const glm::vec3 &A, const glm::vec3 &B, const glm::vec3 &C, const glm::vec3 &D);
+  
+  /// Проверка на то, что отрезок пересекает треугольник, но не лежит в его плоскости
+  static bool is_crossing(glm::vec3 &c, const glm::vec3 &e0, const glm::vec3 &e1, const glm::vec3 &f0, const glm::vec3 &f1, const glm::vec3 &f2);
   
 };

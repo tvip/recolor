@@ -42,15 +42,15 @@ BOOST_AUTO_TEST_CASE ( CombinationTest )
 
 BOOST_AUTO_TEST_CASE ( RecolorSubsetTest )
 {
-  std::vector<T::transition > transition;
-  transition.push_back( T::transition(glm::vec3(0,0,0),glm::vec3(0,0,0)) );
-  transition.push_back( T::transition(glm::vec3(0,0,1),glm::vec3(0,0,1)) );
-  transition.push_back( T::transition(glm::vec3(0,1,0),glm::vec3(0,1,0)) );
-  transition.push_back( T::transition(glm::vec3(0,1,1),glm::vec3(0,1,1)) );
-  transition.push_back( T::transition(glm::vec3(1,0,0),glm::vec3(1,0,0)) );
-  transition.push_back( T::transition(glm::vec3(1,0,1),glm::vec3(1,0,1)) );
-  transition.push_back( T::transition(glm::vec3(1,1,0),glm::vec3(1,1,0)) );
-  transition.push_back( T::transition(glm::vec3(1,1,1),glm::vec3(1,1,1)) );
+  std::vector<T::Transition > transition;
+  transition.push_back( T::Transition(glm::vec3(0,0,0),glm::vec3(0,0,0)) );
+  transition.push_back( T::Transition(glm::vec3(0,0,1),glm::vec3(0,0,1)) );
+  transition.push_back( T::Transition(glm::vec3(0,1,0),glm::vec3(0,1,0)) );
+  transition.push_back( T::Transition(glm::vec3(0,1,1),glm::vec3(0,1,1)) );
+  transition.push_back( T::Transition(glm::vec3(1,0,0),glm::vec3(1,0,0)) );
+  transition.push_back( T::Transition(glm::vec3(1,0,1),glm::vec3(1,0,1)) );
+  transition.push_back( T::Transition(glm::vec3(1,1,0),glm::vec3(1,1,0)) );
+  transition.push_back( T::Transition(glm::vec3(1,1,1),glm::vec3(1,1,1)) );
   
   T recolor(transition);
   auto subset = recolor.subset(4, 0);
@@ -78,9 +78,51 @@ BOOST_AUTO_TEST_CASE ( RecolorPleqCrossTest )
   BOOST_CHECK_LT(glm::length(T::pleq(glm::vec3(0,0,0), glm::vec3(1,0,0), glm::vec3(0,1,0)) - glm::vec4(0, 0, 1, 0)), T::_accuracy);
   BOOST_LOG_TRIVIAL(trace) << glm::length(T::pleq(glm::vec3(0,0,0), glm::vec3(1,0,0), glm::vec3(0,1,0)) - glm::vec4(0, 0, 1, 0));
   
-  glm::vec3 c1 = T::cross(glm::vec3(2.1,1.2,-0.1), glm::vec3(-1.3,-3,2.4), p1);
+  glm::vec3 c1;
+  T::cross(c1, glm::vec3(2.1,1.2,-0.1), glm::vec3(-1.3,-3,2.4), p1);
   BOOST_CHECK_LT(glm::length(c1 - glm::vec3(-0.288,-1.75,1.656)), T::_accuracy );
   BOOST_LOG_TRIVIAL(info) << "CROSS : " << glm::to_string(c1);
+}
+
+BOOST_AUTO_TEST_CASE ( RecolorAsSummTest )
+{
+  glm::vec3 s1;
+  T::as_summ(s1, glm::vec3(0.9,0.9,0.9), glm::vec3(1,0,0), glm::vec3(0,1,0), glm::vec3(0,0,1));
+  BOOST_CHECK_LT(glm::length(s1 - glm::vec3(0.9,0.9,0.9)), T::_accuracy );
+  BOOST_LOG_TRIVIAL(info) << "AS SUMM : " << glm::to_string(s1);
+  
+  glm::vec3 s2;
+  T::as_summ(s2, glm::vec3(-1.9,5.4,1.3), glm::vec3(1.7,0.34,-0.45), glm::vec3(1.2,-1.54,0.1), glm::vec3(-0.11,0.2,2.2));
+  BOOST_CHECK_LT(glm::length(s2 - glm::vec3(1.152,-3.126,0.969)), T::_accuracy );
+  BOOST_LOG_TRIVIAL(info) << "AS SUMM : " << glm::to_string(s2);
+}
+
+BOOST_AUTO_TEST_CASE ( RecolorInsideTest )
+{
+  BOOST_CHECK( !T::inside(glm::vec3(0.9,0.9,0.9), glm::vec3(1,0,0), glm::vec3(0,1,0), glm::vec3(0,0,1), glm::vec3(0,0,0)) );
+  BOOST_CHECK( !T::inside(glm::vec3(0.5,0.5,0.5), glm::vec3(1,0,0), glm::vec3(0,1,0), glm::vec3(0,0,1), glm::vec3(0,0,0)) );
+  BOOST_CHECK( !T::inside(glm::vec3(-1,0,0), glm::vec3(1,0,0), glm::vec3(0,1,0), glm::vec3(0,0,1), glm::vec3(0,0,0)) );
+  BOOST_CHECK( T::inside(glm::vec3(0.5,0,0), glm::vec3(1,0,0), glm::vec3(0,1,0), glm::vec3(0,0,1), glm::vec3(0,0,0)) );
+  BOOST_CHECK( T::inside(glm::vec3(0,0.5,0), glm::vec3(1,0,0), glm::vec3(0,1,0), glm::vec3(0,0,1), glm::vec3(0,0,0)) );
+  BOOST_CHECK( T::inside(glm::vec3(0,0,0.5), glm::vec3(1,0,0), glm::vec3(0,1,0), glm::vec3(0,0,1), glm::vec3(0,0,0)) );
+  BOOST_CHECK( T::inside(glm::vec3(1,0,0), glm::vec3(1,0,0), glm::vec3(0,1,0), glm::vec3(0,0,1), glm::vec3(0,0,0)) );
+  BOOST_CHECK( T::inside(glm::vec3(0,1,0), glm::vec3(1,0,0), glm::vec3(0,1,0), glm::vec3(0,0,1), glm::vec3(0,0,0)) );
+  BOOST_CHECK( T::inside(glm::vec3(0,0,1), glm::vec3(1,0,0), glm::vec3(0,1,0), glm::vec3(0,0,1), glm::vec3(0,0,0)) );
+  BOOST_CHECK( T::inside(glm::vec3(0,0,0), glm::vec3(1,0,0), glm::vec3(0,1,0), glm::vec3(0,0,1), glm::vec3(0,0,0)) );
+}
+
+BOOST_AUTO_TEST_CASE ( RecolorCrossingTest )
+{
+  glm::vec3 c;
+  
+  BOOST_CHECK(T::is_crossing(c, glm::vec3(0,0,1), glm::vec3(1,1,0),
+                             glm::vec3(0,0,0), glm::vec3(1,0,1), glm::vec3(0,1,1)));
+  
+  BOOST_CHECK(!T::is_crossing(c, glm::vec3(0,0,-1), glm::vec3(1,1,-1),
+                             glm::vec3(0,0,0), glm::vec3(1,0,1), glm::vec3(0,1,1)));
+  
+  BOOST_CHECK(!T::is_crossing(c, glm::vec3(0,0,0), glm::vec3(1,0,1),
+                              glm::vec3(0,0,0), glm::vec3(1,0,1), glm::vec3(0,1,1)));
 }
 
 BOOST_AUTO_TEST_CASE ( RecolorIntersectionTest )
