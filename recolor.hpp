@@ -13,6 +13,8 @@ class ColorTransition {
   friend struct RecolorInsideTest;
   friend struct RecolorCrossingTest;
   friend struct RecolorFillTest;
+  friend struct RecolorRastrTest;
+  
   
 public:
   typedef glm::vec3 rgb;
@@ -38,6 +40,7 @@ private:
   std::vector<Tetr> all_tetrs() const;
   std::vector<Tetr> fill_tetrs() const;
   
+  static glm::vec4 rastr(const rgb &color, const rgb &A, const rgb &B, const rgb &C, const rgb &D);
   static bool competitable(const Tetr &A, const Tetr &B);
   static std::vector<glm::vec3> intersection(const Tetr &A, const Tetr &B);
   static std::vector<glm::vec3> reduce(const std::vector<glm::vec3> &V);

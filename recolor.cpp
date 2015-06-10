@@ -289,6 +289,35 @@ bool ColorTransition::inside(const glm::vec3 &O, const glm::vec3 &A, const glm::
   k.x + k.y + k.z < 1.f + _accuracy;
 }
 
+glm::vec4 ColorTransition::rastr( const rgb &color, const rgb &A, const rgb &B, const rgb &C, const rgb &D )
+{
+  glm::vec4 res;
+  std::vector<glm::vec3> tetr;
+  tetr.push_back(A);
+  tetr.push_back(B);
+  tetr.push_back(C);
+  tetr.push_back(D);
+  
+  for ( unsigned i = 0; i < 4; ++i )
+  {
+    std::vector<glm::vec3> Pl = tetr;
+    Pl.erase( Pl.begin() + i );
+    
+    glm::vec3 Cr;
+    if( cross(Cr, color, tetr[i], pleq(Pl[0], Pl[1], Pl[2])) )
+    {
+      res[i] = glm::length( Cr - tetr[i] ) > _accuracy
+      ? glm::length( Cr - color ) / glm::length( Cr - tetr[i] )
+      : 0;
+    }
+    else {
+      res[i] = 0;
+    }
+  }
+  
+  return res;
+}
+
 ColorTransition::Image ColorTransition::fromImage( const Image &img ) const
 {
   
@@ -303,7 +332,16 @@ ColorTransition::rgb ColorTransition::fromColor( const rgb &color ) const
       break;
   }
   
+  glm::vec4 K = rastr( color, (*tetr)[0]->first, (*tetr)[1]->first, (*tetr)[2]->first, (*tetr)[3]->first );
   
+  BOOST_LOG_TRIVIAL(info) << boost::format("FromColor %s ->\n%f %s\n%f %s\n%f %s\n%f %s")
+  %glm::to_string(color)
+  %K[0] %glm::to_string( (*tetr)[0]->first )
+  %K[1] %glm::to_string( (*tetr)[1]->first )
+  %K[2] %glm::to_string( (*tetr)[2]->first )
+  %K[3] %glm::to_string( (*tetr)[3]->first );
+  
+  return color;
 }
 
 

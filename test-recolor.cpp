@@ -260,3 +260,37 @@ BOOST_AUTO_TEST_CASE ( RecolorFillTest )
     BOOST_LOG_TRIVIAL(trace) << boost::format("%s %s") %T::volume(t) %str;
   }
 }
+
+BOOST_AUTO_TEST_CASE ( RecolorRastrTest )
+{
+  {
+    glm::vec4 K = T::rastr(T::rgb(0.57,0.61,0.52), T::rgb(0,0,1), T::rgb(0,1,0), T::rgb(1,0,0), T::rgb(1,1,1));
+    float S = K[0] + K[1] + K[2] + K[3];
+    BOOST_CHECK_LE(glm::length(K - glm::vec4(0.17,0.26,0.22,0.35)), T::_accuracy);
+    BOOST_CHECK_LE(glm::abs( S - 1.f ), T::_accuracy);
+    BOOST_LOG_TRIVIAL(info) << boost::format("RASRT %s : %s") %S %glm::to_string(K);
+  }
+  {
+    glm::vec4 K = T::rastr(T::rgb(0.5,0.5,0.5), T::rgb(0,0,1), T::rgb(0,1,0), T::rgb(0,1,1), T::rgb(1,0,0));
+    float S = K[0] + K[1] + K[2] + K[3];
+    BOOST_CHECK_LE(glm::length(K - glm::vec4(0,0,0.5,0.5)), T::_accuracy);
+    BOOST_CHECK_LE(glm::abs( S - 1.f ), T::_accuracy);
+    BOOST_LOG_TRIVIAL(info) << boost::format("RASRT %s : %s") %S %glm::to_string(K);
+  }
+}
+
+BOOST_AUTO_TEST_CASE ( RecolorTest )
+{
+  std::vector<T::Transition > transition;
+  transition.push_back( T::Transition(glm::vec3(0,0,0),glm::vec3(0,0,0)) );
+  transition.push_back( T::Transition(glm::vec3(0,0,1),glm::vec3(0,0,1)) );
+  transition.push_back( T::Transition(glm::vec3(0,1,0),glm::vec3(0,1,0)) );
+  transition.push_back( T::Transition(glm::vec3(0,1,1),glm::vec3(0,1,1)) );
+  transition.push_back( T::Transition(glm::vec3(1,0,0),glm::vec3(1,0,0)) );
+  transition.push_back( T::Transition(glm::vec3(1,0,1),glm::vec3(1,0,1)) );
+  transition.push_back( T::Transition(glm::vec3(1,1,0),glm::vec3(1,1,0)) );
+  transition.push_back( T::Transition(glm::vec3(1,1,1),glm::vec3(1,1,1)) );
+  
+  T recolor(transition);
+  BOOST_LOG_TRIVIAL(info) << "FROM COLOR : " << glm::to_string( recolor.fromColor( glm::vec3(0.5,0.5,0.5) ) );
+}
