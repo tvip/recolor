@@ -1,6 +1,7 @@
 cmake_minimum_required( VERSION 3.2 )
 project( recolor )
 
+option( ${PROJECT_NAME}_BUILD_TOOL "build command line tool" ON )
 option( ${PROJECT_NAME}_BUILD_TESTS "enable unit testing" ON )
 option( ${PROJECT_NAME}_BUILD_APP "build Mac OS app bundle" ${APPLE} )
 option( ${PROJECT_NAME}_BUILD_SHARED "build shared lib" OFF )
@@ -20,8 +21,12 @@ set( ${PROJECT_NAME}_SRC
 )
 add_library( ${PROJECT_NAME}_object OBJECT ${${PROJECT_NAME}_SRC} )
 
-file(GLOB ALL_SOURCES "*.h" "*.hpp" "*.c" "*.cpp" "*.m" "*.mm" )
+file( GLOB ALL_SOURCES "*.h" "*.hpp" "*.c" "*.cpp" "*.m" "*.mm" )
 source_group( \\ FILES ${ALL_SOURCES} )
+
+if ( ${${PROJECT_NAME}_BUILD_TOOL} )
+	add_subdirectory( tool )
+endif()
 
 if ( ${${PROJECT_NAME}_BUILD_TESTS} )
   enable_testing()
