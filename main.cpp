@@ -11,20 +11,11 @@
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 
-int main (int argc, char *argv[])
+void process_image( std::string img_name )
 {
-  ilInit();
-  iluInit();
-  
-  std::string cmd = "pwd";
-  BOOST_LOG_TRIVIAL(info) << boost::format("%s : %s") %cmd %exec(cmd);
-  BOOST_LOG_TRIVIAL(info) << "app data : " << getAppDataPath();
-  BOOST_LOG_TRIVIAL(info) << "resources : " << getBasePath();
-  
   ILuint img_id = ilGenImage(); ilBindImage(img_id);
   BOOST_LOG_TRIVIAL(trace) << boost::format("il img id : %s") %img_id;
   
-  std::string img_name = "lowres.png";
   if ( ilLoadImage( (getBasePath()+img_name).c_str() ) ) {
     BOOST_LOG_TRIVIAL(info) << "img loaded";
   }
@@ -33,7 +24,7 @@ int main (int argc, char *argv[])
     while ((error = ilGetError()) != IL_NO_ERROR) {
       BOOST_LOG_TRIVIAL(error) << "img not loaded : " << iluErrorString( error );
     }
-    return 1;
+    return;
   }
   
   ILinfo img_info;
@@ -50,14 +41,13 @@ int main (int argc, char *argv[])
   for (ILuint j=0; j<img_info.Height; ++j) {
     for (ILuint i=0; i<img_info.Width; ++i) {
       ILuint offset = (j*img_info.Width+i)*img_info.Bpp;
-      orig_img[j][i] = glm::vec4(img_info.Data[offset+0]/256.0f,
-                                   img_info.Data[offset+1]/256.0f,
-                                   img_info.Data[offset+2]/256.0f,
-                                   img_info.Data[offset+3]/256.0f);
+      orig_img[j][i] = glm::vec4(img_info.Data[offset+0]/255.0f,
+                                 img_info.Data[offset+1]/255.0f,
+                                 img_info.Data[offset+2]/255.0f,
+                                 img_info.Data[offset+3]/255.0f);
 #if 0
       BOOST_LOG_TRIVIAL(trace) << boost::format("%s[%s:%s] %s") %(unsigned)offset %j %i %glm::to_string( colors[j][i] );
 #endif
-      //img_info.Data[offset+0] = 255;
     }
   }
   
@@ -86,7 +76,6 @@ int main (int argc, char *argv[])
 #if 0
       BOOST_LOG_TRIVIAL(trace) << boost::format("%s[%s:%s] %s") %(unsigned)offset %j %i %glm::to_string( colors[j][i] );
 #endif
-      //img_info.Data[offset+0] = 255;
     }
   }
   
@@ -103,6 +92,22 @@ int main (int argc, char *argv[])
   }
   
   ilDeleteImage(img_id);
+}
+
+int main (int argc, char *argv[])
+{
+  ilInit();
+  iluInit();
+  
+  std::string cmd = "pwd";
+  BOOST_LOG_TRIVIAL(info) << boost::format("%s : %s") %cmd %exec(cmd);
+  BOOST_LOG_TRIVIAL(info) << "app data : " << getAppDataPath();
+  BOOST_LOG_TRIVIAL(info) << "resources : " << getBasePath();
+  
+  process_image( "icons.png" );
+  process_image( "icons1.bmp" );
+  process_image( "lowres.png" );
+  process_image( "small.png" );
   
   return 0;
 }
