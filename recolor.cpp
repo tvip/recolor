@@ -320,7 +320,22 @@ glm::vec4 ColorTransition::rastr( const rgb &color, const rgb &A, const rgb &B, 
 
 ColorTransition::Image ColorTransition::fromImage( const Image &img ) const
 {
+  Image result = img;
   
+  for ( unsigned j = 0; j < img.size(); ++j ) {
+    for ( unsigned i = 0; i < img[j].size(); ++i )
+    {
+      const rgba &origin = img[j][i];
+      rgba &res = result[j][i];
+      
+      rgb p = fromColor( glm::vec3( origin.r, origin.g, origin.b ) );
+      res.r = p.r;
+      res.g = p.g;
+      res.b = p.b;
+    }
+  }
+  
+  return result;
 }
 
 ColorTransition::rgb ColorTransition::fromColor( const rgb &color ) const
@@ -334,17 +349,24 @@ ColorTransition::rgb ColorTransition::fromColor( const rgb &color ) const
   
   glm::vec4 K = rastr( color, (*tetr)[0]->first, (*tetr)[1]->first, (*tetr)[2]->first, (*tetr)[3]->first );
   
+#if 0
   BOOST_LOG_TRIVIAL(info) << boost::format("FromColor %s ->\n%f %s\n%f %s\n%f %s\n%f %s")
   %glm::to_string(color)
   %K[0] %glm::to_string( (*tetr)[0]->first )
   %K[1] %glm::to_string( (*tetr)[1]->first )
   %K[2] %glm::to_string( (*tetr)[2]->first )
   %K[3] %glm::to_string( (*tetr)[3]->first );
+#endif
   
-  return color;
+  rgb r =
+  + K[0] * (*tetr)[0]->second
+  + K[1] * (*tetr)[1]->second
+  + K[2] * (*tetr)[2]->second
+  + K[3] * (*tetr)[3]->second;
+  
+#if 0
+  BOOST_LOG_TRIVIAL(info) << "ResColor : " << glm::to_string(r);
+#endif
+  
+  return r;
 }
-
-
-
-
-

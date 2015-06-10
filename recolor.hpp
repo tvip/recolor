@@ -22,6 +22,8 @@ public:
   typedef std::pair<rgb,rgb> Transition;
   typedef std::vector<std::vector<rgba> > Image;
   
+  static const float _accuracy;
+  
   ColorTransition( const std::vector<Transition> &transition );
   
   Image fromImage( const Image &img ) const;
@@ -31,7 +33,6 @@ private:
   typedef std::vector<Transition> Tetr;
   typedef std::vector<Transition> Face;
   typedef std::vector<Transition> Edge;
-  static const float _accuracy;
   
   const std::vector<Transition> m_transition;
   std::vector< std::vector< std::vector<Transition>::const_iterator > > m_fill_tetrs;

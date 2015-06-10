@@ -232,12 +232,14 @@ BOOST_AUTO_TEST_CASE ( RecolorIntersectionTest )
 BOOST_AUTO_TEST_CASE ( RecolorFillTest )
 {
   std::vector<T::Transition > transition;
+  transition.push_back( T::Transition(glm::vec3(0.33,0.8,0.95),glm::vec3(1,0.5,0)) );
+  transition.push_back( T::Transition(glm::vec3(0,0.5,1),glm::vec3(1,0.5,0)) );
   transition.push_back( T::Transition(glm::vec3(0,0,0),glm::vec3(0,0,0)) );
-  transition.push_back( T::Transition(glm::vec3(0,0,1),glm::vec3(0,0,1)) );
+  transition.push_back( T::Transition(glm::vec3(0,0,1),glm::vec3(1,0.5,0)) );
   transition.push_back( T::Transition(glm::vec3(0,1,0),glm::vec3(0,1,0)) );
-  transition.push_back( T::Transition(glm::vec3(0,1,1),glm::vec3(0,1,1)) );
+  transition.push_back( T::Transition(glm::vec3(0,1,1),glm::vec3(0,0.3,0.3)) );
   transition.push_back( T::Transition(glm::vec3(1,0,0),glm::vec3(1,0,0)) );
-  transition.push_back( T::Transition(glm::vec3(1,0,1),glm::vec3(1,0,1)) );
+  transition.push_back( T::Transition(glm::vec3(1,0,1),glm::vec3(1,0,0)) );
   transition.push_back( T::Transition(glm::vec3(1,1,0),glm::vec3(1,1,0)) );
   transition.push_back( T::Transition(glm::vec3(1,1,1),glm::vec3(1,1,1)) );
   
@@ -282,15 +284,47 @@ BOOST_AUTO_TEST_CASE ( RecolorRastrTest )
 BOOST_AUTO_TEST_CASE ( RecolorTest )
 {
   std::vector<T::Transition > transition;
+  transition.push_back( T::Transition(glm::vec3(0.33,0.8,0.95),glm::vec3(1,0.5,0)) );
+  transition.push_back( T::Transition(glm::vec3(0,0.5,1),glm::vec3(1,0.5,0)) );
   transition.push_back( T::Transition(glm::vec3(0,0,0),glm::vec3(0,0,0)) );
-  transition.push_back( T::Transition(glm::vec3(0,0,1),glm::vec3(0,0,1)) );
+  transition.push_back( T::Transition(glm::vec3(0,0,1),glm::vec3(1,0.5,0)) );
   transition.push_back( T::Transition(glm::vec3(0,1,0),glm::vec3(0,1,0)) );
-  transition.push_back( T::Transition(glm::vec3(0,1,1),glm::vec3(0,1,1)) );
+  transition.push_back( T::Transition(glm::vec3(0,1,1),glm::vec3(0,0.3,0.3)) );
   transition.push_back( T::Transition(glm::vec3(1,0,0),glm::vec3(1,0,0)) );
-  transition.push_back( T::Transition(glm::vec3(1,0,1),glm::vec3(1,0,1)) );
+  transition.push_back( T::Transition(glm::vec3(1,0,1),glm::vec3(1,0,0)) );
   transition.push_back( T::Transition(glm::vec3(1,1,0),glm::vec3(1,1,0)) );
   transition.push_back( T::Transition(glm::vec3(1,1,1),glm::vec3(1,1,1)) );
-  
   T recolor(transition);
-  BOOST_LOG_TRIVIAL(info) << "FROM COLOR : " << glm::to_string( recolor.fromColor( glm::vec3(0.5,0.5,0.5) ) );
+  
+  {
+    T::rgb origin = T::rgb(0,0,0);
+    T::rgb result = recolor.fromColor(origin);
+    
+    BOOST_CHECK_LE(glm::length(result - glm::vec3(0,0,0)), T::_accuracy);
+    BOOST_LOG_TRIVIAL(info) << boost::format("TRANSITION : %s -> %s") %glm::to_string(origin) %glm::to_string(result);
+  }
+  
+  {
+    T::rgb origin = T::rgb(0,0.9,1);
+    T::rgb result = recolor.fromColor(origin);
+    
+    BOOST_CHECK_LE(glm::length(result - glm::vec3(0.2,0.34,0.24)), T::_accuracy);
+    BOOST_LOG_TRIVIAL(info) << boost::format("TRANSITION : %s -> %s") %glm::to_string(origin) %glm::to_string(result);
+  }
+  
+  {
+    T::rgb origin = T::rgb(0.33,0.8,0.95);
+    T::rgb result = recolor.fromColor(origin);
+    
+    BOOST_CHECK_LE(glm::length(result - glm::vec3(1,0.5,0)), T::_accuracy);
+    BOOST_LOG_TRIVIAL(info) << boost::format("TRANSITION : %s -> %s") %glm::to_string(origin) %glm::to_string(result);
+  }
+  
+  {
+    T::rgb origin = T::rgb(1,1,1);
+    T::rgb result = recolor.fromColor(origin);
+    
+    BOOST_CHECK_LE(glm::length(result - glm::vec3(1,1,1)), T::_accuracy);
+    BOOST_LOG_TRIVIAL(info) << boost::format("TRANSITION : %s -> %s") %glm::to_string(origin) %glm::to_string(result);
+  }
 }
