@@ -3,9 +3,6 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
-#include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
-
 const float ColorTransition::_accuracy = 0.001f;
 
 ColorTransition::ColorTransition( const std::vector<Transition> &transition )
@@ -275,11 +272,6 @@ bool ColorTransition::as_summ(glm::vec3 &K, const glm::vec3 &D, const glm::vec3 
 bool ColorTransition::inside(const glm::vec3 &O, const glm::vec3 &A, const glm::vec3 &B, const glm::vec3 &C, const glm::vec3 &D)
 {
   glm::vec3 k;
-//  BOOST_LOG_TRIVIAL(trace) << "INSIDE : " << glm::to_string(O-A);
-//  BOOST_LOG_TRIVIAL(trace) << "INSIDE : " << glm::to_string(B-A);
-//  BOOST_LOG_TRIVIAL(trace) << "INSIDE : " << glm::to_string(C-A);
-//  BOOST_LOG_TRIVIAL(trace) << "INSIDE : " << glm::to_string(D-A);
-//  BOOST_LOG_TRIVIAL(trace) << "INSIDE : " << glm::to_string(k);
   
   return
   as_summ(k, O-A, B-A, C-A, D-A) &&
@@ -349,24 +341,11 @@ ColorTransition::rgb ColorTransition::fromColor( const rgb &color ) const
   
   glm::vec4 K = rastr( color, (*tetr)[0]->first, (*tetr)[1]->first, (*tetr)[2]->first, (*tetr)[3]->first );
   
-#if 0
-  BOOST_LOG_TRIVIAL(info) << boost::format("FromColor %s ->\n%f %s\n%f %s\n%f %s\n%f %s")
-  %glm::to_string(color)
-  %K[0] %glm::to_string( (*tetr)[0]->first )
-  %K[1] %glm::to_string( (*tetr)[1]->first )
-  %K[2] %glm::to_string( (*tetr)[2]->first )
-  %K[3] %glm::to_string( (*tetr)[3]->first );
-#endif
-  
   rgb r =
   + K[0] * (*tetr)[0]->second
   + K[1] * (*tetr)[1]->second
   + K[2] * (*tetr)[2]->second
   + K[3] * (*tetr)[3]->second;
-  
-#if 0
-  BOOST_LOG_TRIVIAL(info) << "ResColor : " << glm::to_string(r);
-#endif
   
   return r;
 }

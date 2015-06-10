@@ -11,7 +11,9 @@
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 
-void process_image( std::string img_name )
+#include <fstream>
+
+void process_image( const ColorTransition &recolor, const std::string &img_name )
 {
   ILuint img_id = ilGenImage(); ilBindImage(img_id);
   BOOST_LOG_TRIVIAL(trace) << boost::format("il img id : %s") %img_id;
@@ -50,19 +52,6 @@ void process_image( std::string img_name )
 #endif
     }
   }
-  
-  std::vector<ColorTransition::Transition > transition;
-  transition.push_back( ColorTransition::Transition(glm::vec3(0.33,0.8,0.95),glm::vec3(1,0.5,0)) );
-  transition.push_back( ColorTransition::Transition(glm::vec3(0,0.5,1),glm::vec3(1,0.5,0)) );
-  transition.push_back( ColorTransition::Transition(glm::vec3(0,0,0),glm::vec3(0,0,0)) );
-  transition.push_back( ColorTransition::Transition(glm::vec3(0,0,1),glm::vec3(1,0.5,0)) );
-  transition.push_back( ColorTransition::Transition(glm::vec3(0,1,0),glm::vec3(0,1,0)) );
-  transition.push_back( ColorTransition::Transition(glm::vec3(0,1,1),glm::vec3(0,0.3,0.3)) );
-  transition.push_back( ColorTransition::Transition(glm::vec3(1,0,0),glm::vec3(1,0,0)) );
-  transition.push_back( ColorTransition::Transition(glm::vec3(1,0,1),glm::vec3(1,0,0)) );
-  transition.push_back( ColorTransition::Transition(glm::vec3(1,1,0),glm::vec3(1,1,0)) );
-  transition.push_back( ColorTransition::Transition(glm::vec3(1,1,1),glm::vec3(1,1,1)) );
-  ColorTransition recolor(transition);
   
   ColorTransition::Image res_img = recolor.fromImage(orig_img);
   
@@ -104,10 +93,23 @@ int main (int argc, char *argv[])
   BOOST_LOG_TRIVIAL(info) << "app data : " << getAppDataPath();
   BOOST_LOG_TRIVIAL(info) << "resources : " << getBasePath();
   
-  process_image( "icons.png" );
-  process_image( "icons1.bmp" );
-  process_image( "lowres.png" );
-  process_image( "small.png" );
+  std::fstream fTransition( getBasePath() + "colors.txt", std::ios_base::in );
+  std::vector<ColorTransition::Transition > transition;
+  ColorTransition::Transition t;
+  
+  while (fTransition
+         >> t.first.r >> t.first.g >> t.first.b
+         >> t.second.r >> t.second.g >> t.second.b)
+  {
+    transition.push_back( t );
+  }
+  
+  ColorTransition recolor = ColorTransition(transition);
+  
+  process_image( recolor, "icons.png" );
+  process_image( recolor, "icons1.bmp" );
+  process_image( recolor, "lowres.png" );
+  process_image( recolor, "small.png" );
   
   return 0;
 }
