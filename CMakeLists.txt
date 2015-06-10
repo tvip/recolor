@@ -21,8 +21,9 @@ find_library( Foundation_LIBRARY Foundation )
 list( APPEND libs ${Foundation_LIBRARY} )
 
 set( RES
-  res/icons.png
+  res/icons1.bmp
   res/lowres.png
+  res/small.png
 )
 
 set( ${PROJECT_NAME}_SRC

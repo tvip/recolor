@@ -24,7 +24,7 @@ int main (int argc, char *argv[])
   ILuint img_id = ilGenImage(); ilBindImage(img_id);
   BOOST_LOG_TRIVIAL(trace) << boost::format("il img id : %s") %img_id;
   
-  std::string img_name = "icons.png";
+  std::string img_name = "lowres.png";
   if ( ilLoadImage( (getBasePath()+img_name).c_str() ) ) {
     BOOST_LOG_TRIVIAL(info) << "img loaded";
   }
