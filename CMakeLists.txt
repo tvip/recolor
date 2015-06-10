@@ -3,6 +3,8 @@ project( recolor )
 
 option( ${PROJECT_NAME}_BUILD_TESTS "enable unit testing" ON )
 option( ${PROJECT_NAME}_BUILD_APP "build Mac OS app bundle" ${APPLE} )
+option( ${PROJECT_NAME}_BUILD_SHARED "build shared lib" OFF )
+option( ${PROJECT_NAME}_BUILD_STATIC "build static lib" OFF )
 
 set( CMAKE_CXX_STANDARD 98 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
@@ -28,4 +30,12 @@ endif()
 
 if ( ${${PROJECT_NAME}_BUILD_APP} )
   add_subdirectory( app )
+endif()
+
+if ( ${${PROJECT_NAME}_BUILD_SHARED} )
+  add_library( ${PROJECT_NAME}-shared SHARED "$<TARGET_OBJECTS:${PROJECT_NAME}_object>" )
+endif()
+
+if ( ${${PROJECT_NAME}_BUILD_STATIC} )
+  add_library( ${PROJECT_NAME}-static STATIC "$<TARGET_OBJECTS:${PROJECT_NAME}_object>" )
 endif()
