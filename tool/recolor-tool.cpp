@@ -8,12 +8,15 @@
 
 #include <pugixml.hpp>
 
+#include <chrono>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
 
 static ColorTransition *s_recolor;
+static std::chrono::nanoseconds s_nanoseconds;
+static unsigned long s_pixels;
 
 void process_image( const std::string &img_fname, const std::string &output_fname )
 {
@@ -33,7 +36,7 @@ void process_image( const std::string &img_fname, const std::string &output_fnam
   ILinfo img_info;
   iluGetImageInfo(&img_info);
 
-  std::cout << "  dimensions : " << img_info.Width << "x" << img_info.Height << "x" << img_info.Depth << std::endl;
+  std::cout << "  dimensions : " << img_info.Width << "x" << img_info.Height << std::endl;
   std::cout << "  size: " << img_info.SizeOfData << "  bbp: " << (unsigned)img_info.Bpp << std::endl;
 
   ColorTransition::Image orig_img(img_info.Height, std::vector<glm::vec4>(img_info.Width));
@@ -47,7 +50,12 @@ void process_image( const std::string &img_fname, const std::string &output_fnam
     }
   }
 
+  auto t1 = std::chrono::high_resolution_clock::now();
   ColorTransition::Image res_img = s_recolor->fromImage(orig_img);
+  std::chrono::nanoseconds t = std::chrono::high_resolution_clock::now() - t1;
+  std::cout << "time: " << std::chrono::duration_cast<std::chrono::milliseconds> ( t ).count() << "ms" << std::endl;
+  s_nanoseconds += t;
+  s_pixels += img_info.Width * img_info.Height;
 
   for (ILuint j=0; j<img_info.Height; ++j) {
     for (ILuint i=0; i<img_info.Width; ++i) {
@@ -75,96 +83,48 @@ void process_image( const std::string &img_fname, const std::string &output_fnam
   ilDeleteImage(img_id);
 }
 
-class Process {
-  
-public:
+struct Process {
+
+  std::string transition;
+  std::string input_dir;
+  std::string output_dir;
+
   virtual void make() {
-    std::cout << "Input dir \"" << input_dir() << "\"; Output dir \"" << output_dir() << "\";" << std::endl;
+    std::cout << "Input dir \"" << input_dir << "\"; Output dir \"" << output_dir << "\";" << std::endl;
   }
-  
-private:
-  std::string m_transition;
-public:
-  void set_transition( std::string fname ) { m_transition = fname; }
-  std::string transition() { return m_transition; }
-  
-private:
-  std::string m_input_dir;
-public:
-  void set_input_dir( std::string dir ) { m_input_dir = dir; }
-  std::string input_dir() { return m_input_dir; }
-  
-private:
-  std::string m_output_dir;
-public:
-  void set_output_dir( std::string dir ) { m_output_dir = dir; }
-  std::string output_dir() { return m_output_dir; }
   
 };
 
-class ProcessXML : public Process {
-  std::string m_fname;
-public:
-  ProcessXML( std::string fname ) : m_fname(fname) { }
+struct ProcessXML : public Process {
+  std::string fname;
+  std::string xpath, attr;
+
+  ProcessXML( std::string fname ) : fname(fname) { }
   virtual void make() {
-    std::cout << "Process XML \"" << m_fname << "\"; ";
+    std::cout << "Process XML \"" << fname << "\"; ";
     Process::make();
 
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file( m_fname.c_str() );
+    pugi::xml_parse_result result = doc.load_file( fname.c_str() );
     if ( result.status != pugi::status_ok ) {
-      std::cerr << "Couldn't load xml \"" << m_fname << "\" : " << result.description() << std::endl;
+      std::cerr << "Couldn't load xml \"" << fname << "\" : " << result.description() << std::endl;
       return;
     }
 
-    pugi::xpath_node_set image_nodes = doc.select_nodes( "//image[@file]" );
+    pugi::xpath_node_set image_nodes = doc.select_nodes( xpath.c_str() );
     std::cout << image_nodes.size() << " images" << std::endl << std::endl;
 
     for ( const pugi::xpath_node &xnode : image_nodes ) {
-      std::string img_fname = xnode.node().attribute("file").value();
+      std::string img_fname = xnode.node().attribute( attr.c_str() ).value();
       std::cout << img_fname << std::endl;
-      process_image( input_dir() + "/" + img_fname, output_dir() + "/" + img_fname );
+      process_image( input_dir + "/" + img_fname, output_dir + "/" + img_fname );
       std::cout << std::endl;
     }
   }
 };
 
-int main (int argc, char *argv[])
+ColorTransition *make_transition( const std::string &transition_fname )
 {
-  ilInit();
-  iluInit();
-
-  for ( int i = 0; i < argc; ++i ) {
-    std::cout << argv[i] << std::endl;
-  }
-  
-  std::vector<Process *> proc_queue;
-  std::string transition_fname;
-  std::string input_dir;
-  std::string output_dir;
-  
-  int c = 0;
-  if ( ++c < argc ) {
-    transition_fname = argv[c];
-  }
-  
-  while ( ++c < argc ) {
-    std::cout << "ARG: " << argv[c] << std::endl;
-    if ( std::strcmp( argv[c], "-xml" ) == 0 ) {
-      ProcessXML *procXML = new ProcessXML( argv[++c] );
-      procXML->set_transition( transition_fname );
-      procXML->set_input_dir( input_dir );
-      procXML->set_output_dir( output_dir );
-      proc_queue.push_back( procXML );
-    }
-    else if ( std::strcmp( argv[c], "-in") == 0 ) {
-      input_dir = argv[++c];
-    }
-    else if ( std::strcmp( argv[c], "-out") == 0 ) {
-      output_dir = argv[++c];
-    }
-  }
-
   std::cout << "Transition: \"" << transition_fname << "\"" << std::endl;
   std::fstream fTransition( transition_fname, std::ios_base::in );
   std::vector<ColorTransition::Transition > transition;
@@ -177,13 +137,64 @@ int main (int argc, char *argv[])
     transition.push_back( t );
   }
 
-  s_recolor = new ColorTransition(transition);
+  return new ColorTransition(transition);
+}
+
+int main (int argc, char *argv[])
+{
+  ilInit();
+  iluInit();
+
+  for ( int i = 0; i < argc; ++i ) {
+    std::cout << argv[i] << std::endl;
+  }
+  
+  std::vector<Process *> proc_queue;
+  std::string transition_fname;
+  std::string input_dir, output_dir;
+  std::string xml_xpath, xml_atrib;
+  
+  int c = 0;
+  if ( ++c < argc ) {
+    transition_fname = argv[c];
+  }
+  
+  while ( ++c < argc ) {
+    std::cout << "ARG: " << argv[c] << std::endl;
+    if ( std::strcmp( argv[c], "-xml" ) == 0 ) {
+      ProcessXML *procXML = new ProcessXML( argv[++c] );
+      procXML->transition = transition_fname;
+      procXML->input_dir = input_dir;
+      procXML->output_dir = output_dir;
+      procXML->xpath = xml_xpath;
+      procXML->attr = xml_atrib;
+      proc_queue.push_back( procXML );
+    }
+    else if ( std::strcmp( argv[c], "-xpath") == 0 ) {
+      xml_xpath = argv[++c];
+    }
+    else if ( std::strcmp( argv[c], "-xattr") == 0 ) {
+      xml_atrib = argv[++c];
+    }
+    else if ( std::strcmp( argv[c], "-xin") == 0 ) {
+      input_dir = argv[++c];
+    }
+    else if ( std::strcmp( argv[c], "-xout") == 0 ) {
+      output_dir = argv[++c];
+    }
+  }
+
+  s_recolor = make_transition( transition_fname );
 
   for ( Process *p : proc_queue ) {
     p->make();
   }
 
   delete  s_recolor;
+
+  std::cout << "Total pixels: " << s_pixels << std::endl;
+  std::cout << "Seconds: " << ( s_nanoseconds.count() / 1000000000.0 ) << std::endl;
+  std::cout << "Avarage pixels per second: " << (double)s_pixels / ( (double)s_nanoseconds.count() / 1000000000.0 ) << std::endl;
 
   return 0;
 }

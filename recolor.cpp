@@ -333,7 +333,8 @@ ColorTransition::Image ColorTransition::fromImage( const Image &img ) const
 ColorTransition::rgb ColorTransition::fromColor( const rgb &color ) const
 {
   std::vector< std::vector< std::vector<Transition>::const_iterator > >::const_iterator tetr;
-  
+
+#warning TODO: cтавить на первое место поледний испосльзованный тетраэдр, это сократит число шагов цикла
   for ( tetr = m_fill_tetrs.begin(); tetr != m_fill_tetrs.end(); ++tetr ) {
     if ( inside(color, (*tetr)[0]->first, (*tetr)[1]->first, (*tetr)[2]->first, (*tetr)[3]->first) )
       break;
