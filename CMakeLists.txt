@@ -4,8 +4,8 @@ project( recolor )
 option( ${PROJECT_NAME}_BUILD_TOOL "build command line tool" ON )
 option( ${PROJECT_NAME}_BUILD_TESTS "enable unit testing" ON )
 option( ${PROJECT_NAME}_BUILD_APP "build Mac OS app bundle" ${APPLE} )
-option( ${PROJECT_NAME}_BUILD_SHARED "build shared lib" OFF )
-option( ${PROJECT_NAME}_BUILD_STATIC "build static lib" OFF )
+option( ${PROJECT_NAME}_BUILD_SHARED "build shared lib" ON )
+option( ${PROJECT_NAME}_BUILD_STATIC "build static lib" ON )
 
 set( CMAKE_CXX_STANDARD 98 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
@@ -15,6 +15,7 @@ set( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" )
 find_package( GLM REQUIRED )
 add_definitions( -DGLM_FORCE_CXX98=1 -DGLM_FORCE_NO_CTOR_INIT=1 -DGLM_FORCE_RADIANS=1 )
 include_directories( ${GLM_INCLUDE_DIRS} )
+#message( FATAL_ERROR "GLM_INCLUDE_DIRS ${GLM_INCLUDE_DIRS}" )
 
 set( ${PROJECT_NAME}_SRC
   recolor.hpp recolor.cpp

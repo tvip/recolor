@@ -3,7 +3,15 @@ project( recolor-tool )
 
 find_package( DevIL REQUIRED )
 include_directories( ${IL_INCLUDE_DIR} )
+include_directories( ${IL_INCLUDE_DIR}/.. )
 list( APPEND libs ${IL_LIBRARIES} ${ILU_LIBRARIES} )
+#message( FATAL_ERROR "IL_INCLUDE_DIR ${IL_INCLUDE_DIR}" )
+
+find_package( pugixml REQUIRED )
+message( STATUS "Found pugixml: ${pugixml_DIR}" )
+include_directories( ${PUGIXML_INCLUDE_DIR} )
+#include_directories( "${pugixml_DIR}/../../../include" )
+list( APPEND libs ${PUGIXML_LIBRARY} )
 
 include_directories( ${recolor_SOURCE_DIR} )
 

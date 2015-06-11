@@ -3,7 +3,9 @@ project( recolor-app )
 
 find_package( DevIL REQUIRED )
 include_directories( ${IL_INCLUDE_DIR} )
+include_directories( ${IL_INCLUDE_DIR}/.. )
 list( APPEND libs ${IL_LIBRARIES} ${ILU_LIBRARIES} )
+#message( FATAL_ERROR "IL_INCLUDE_DIR ${IL_INCLUDE_DIR}" )
 
 find_library( Foundation_LIBRARY Foundation )
 list( APPEND libs ${Foundation_LIBRARY} )
