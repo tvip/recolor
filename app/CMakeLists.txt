@@ -12,6 +12,7 @@ list( APPEND libs ${Foundation_LIBRARY} )
 
 set( RES
   res/orange.txt
+  res/green.txt
   res/same.txt
   res/icons.png
   res/icons1.bmp
