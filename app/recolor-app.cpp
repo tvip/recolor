@@ -85,7 +85,7 @@ int main (int argc, char *argv[])
   std::cout << "app data : " << getAppDataPath();
   std::cout << "resources : " << getBasePath();
   
-  std::fstream fTransition( getBasePath() + "colors.txt", std::ios_base::in );
+  std::fstream fTransition( getBasePath() + "orange.txt", std::ios_base::in );
   std::vector<ColorTransition::Transition > transition;
   ColorTransition::Transition t;
   

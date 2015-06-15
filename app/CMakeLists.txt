@@ -11,7 +11,8 @@ find_library( Foundation_LIBRARY Foundation )
 list( APPEND libs ${Foundation_LIBRARY} )
 
 set( RES
-  res/colors.txt
+  res/orange.txt
+  res/same.txt
   res/icons.png
   res/icons1.bmp
   res/lowres.png

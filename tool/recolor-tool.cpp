@@ -158,7 +158,7 @@ int main (int argc, char *argv[])
   if ( ++c < argc ) {
     transition_fname = argv[c];
   } else {
-    std::cout << "usage examples :" << std::endl << "recolor-tool /Users/iKoznov/Developer/recolor/app/res/colors.txt -in /Users/iKoznov/Developer/tvip/tvip/themes/tvip_light/resources -out /Users/iKoznov/Desktop/res -xpath //image[@file] -xattr file -xml /Users/iKoznov/Developer/tvip/tvip/themes/tvip_light/resources.xml" << std::endl;
+    std::cout << "usage examples :" << std::endl << "recolor-tool /Users/iKoznov/Developer/recolor/app/res/orange.txt -in /Users/iKoznov/Developer/tvip/tvip/themes/tvip_light/resources -out /Users/iKoznov/Desktop/res -xpath //image[@file] -xattr file -xml /Users/iKoznov/Developer/tvip/tvip/themes/tvip_light/resources.xml" << std::endl;
   }
   
   while ( ++c < argc ) {
