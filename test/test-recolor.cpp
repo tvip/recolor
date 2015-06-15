@@ -278,6 +278,13 @@ BOOST_AUTO_TEST_CASE ( RecolorRastrTest )
     BOOST_CHECK_LE(glm::abs( S - 1.f ), T::_accuracy);
     BOOST_LOG_TRIVIAL(info) << boost::format("RASRT %s : %s") %S %glm::to_string(K);
   }
+  {
+    glm::vec4 K = T::rastr(T::rgb(1,1,1), T::rgb(0,1,1), T::rgb(1,0,1), T::rgb(1,1,0), T::rgb(1,1,1));
+    float S = K[0] + K[1] + K[2] + K[3];
+    BOOST_CHECK_LE(glm::length(K - glm::vec4(0,0,0,1)), T::_accuracy);
+    BOOST_CHECK_LE(glm::abs( S - 1.f ), T::_accuracy);
+    BOOST_LOG_TRIVIAL(info) << boost::format("RASRT %s : %s") %S %glm::to_string(K);
+  }
 }
 
 BOOST_AUTO_TEST_CASE ( RecolorTest )

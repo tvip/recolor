@@ -303,7 +303,7 @@ glm::vec4 ColorTransition::rastr( const rgb &color, const rgb &A, const rgb &B, 
       : 0;
     }
     else {
-      res[i] = 0;
+      res[i] = 1;
     }
   }
   

@@ -157,6 +157,8 @@ int main (int argc, char *argv[])
   int c = 0;
   if ( ++c < argc ) {
     transition_fname = argv[c];
+  } else {
+    std::cout << "usage examples :" << std::endl << "recolor-tool /Users/iKoznov/Developer/recolor/app/res/colors.txt -in /Users/iKoznov/Developer/tvip/tvip/themes/tvip_light/resources -out /Users/iKoznov/Desktop/res -xpath //image[@file] -xattr file -xml /Users/iKoznov/Developer/tvip/tvip/themes/tvip_light/resources.xml" << std::endl;
   }
   
   while ( ++c < argc ) {
@@ -176,10 +178,10 @@ int main (int argc, char *argv[])
     else if ( std::strcmp( argv[c], "-xattr") == 0 ) {
       xml_atrib = argv[++c];
     }
-    else if ( std::strcmp( argv[c], "-xin") == 0 ) {
+    else if ( std::strcmp( argv[c], "-in") == 0 ) {
       input_dir = argv[++c];
     }
-    else if ( std::strcmp( argv[c], "-xout") == 0 ) {
+    else if ( std::strcmp( argv[c], "-out") == 0 ) {
       output_dir = argv[++c];
     }
   }
