@@ -15,6 +15,7 @@ from jinja2 import Template
 
 template = Template('Hello {{ name }}!')
 print(template.render(name='John Doe'))
+print()
 
 
 
@@ -22,7 +23,17 @@ from jinja2 import Environment, PackageLoader
 
 env = Environment(loader=PackageLoader('recolor', 'templates'))
 template = env.get_template('mytemplate.html')
+
 print(template.render(the='variables', go='here'))
+print()
+
+print(env.get_template('base.html'))
+print()
+
+
+
+
+
 
 import recolor.fibo
 
