@@ -6,7 +6,7 @@ __author__ = 'ikoznov'
 
 import sys
 
-print("Module",  __name__)
+print("Module", __name__)
 print("sys.path", sys.path)
 
 
@@ -38,5 +38,17 @@ print()
 import recolor.fibo
 
 recolor.fibo.fib(1000)
+print()
 
 
+
+
+import cherrypy
+
+class HelloWorld(object):
+  @cherrypy.expose()
+  def index(self):
+    return "Hello World!"
+
+if __name__ == '__main__':
+  cherrypy.quickstart(HelloWorld())
