@@ -11,8 +11,8 @@ class StringGenerator(object):
     return "Hello World!"
 
   @cherrypy.expose
-  def generate(self):
-    return ''.join(random.sample(string.hexdigits, 8))
+  def generate(self, length=8):
+    return ''.join(random.sample(string.hexdigits, int(length)))
 
 if __name__ == '__main__':
   cherrypy.quickstart(StringGenerator())
