@@ -5,6 +5,9 @@ build
 # ignore python bytecode files
 __pycache__
 
+# ignore sqlite database
+*.db
+
 syntax: regexp
 
 # ignore hidden files (started from ".") exept of hg* files
