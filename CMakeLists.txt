@@ -1,5 +1,5 @@
 cmake_minimum_required( VERSION 3.2 )
-project( recolor )
+project( recolor VERSION 0.1 )
 
 # setting CMAKE_DISABLE_FIND_PACKAGE_Boost to TRUE force disables using Boost libs
 option( ${PROJECT_NAME}_BUILD_TOOL "build command line tool" ON )
@@ -46,3 +46,47 @@ endif()
 if ( ${${PROJECT_NAME}_BUILD_STATIC} )
   add_library( ${PROJECT_NAME}-static STATIC "$<TARGET_OBJECTS:${PROJECT_NAME}_object>" )
 endif()
+
+set(INCLUDE_INSTALL_DIR include/ CACHE PATH "" )
+set(LIB_INSTALL_DIR lib/ CACHE PATH "" )
+set(BINARY_INSTALL_DIR bin/ CACHE PATH "" )
+set(ConfigPackageLocation lib/cmake/)
+
+install(TARGETS ${PROJECT_NAME}-shared ${PROJECT_NAME}-static EXPORT ${PROJECT_NAME}Targets
+  LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+  ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
+  RUNTIME DESTINATION ${BIN_INSTALL_DIR}
+  INCLUDES DESTINATION ${INCLUDE_INSTALL_DIR}
+)
+
+install( FILES recolor.hpp
+  DESTINATION include
+  COMPONENT Devel
+)
+
+include( CMakePackageConfigHelpers )
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Version.cmake"
+  COMPATIBILITY AnyNewerVersion
+)
+
+export(EXPORT ${PROJECT_NAME}Targets
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake"
+)
+
+configure_package_config_file(
+	recolor-config.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+	INSTALL_DESTINATION lib/cmake
+	PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR BINARY_INSTALL_DIR
+)
+
+install(EXPORT ${PROJECT_NAME}Targets
+  FILE ${PROJECT_NAME}Targets.cmake
+  DESTINATION ${ConfigPackageLocation}
+)
+
+install( FILES
+	"${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+	"${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Version.cmake"
+  DESTINATION ${ConfigPackageLocation}
+)
