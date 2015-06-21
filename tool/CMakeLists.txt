@@ -1,6 +1,8 @@
 cmake_minimum_required( VERSION 3.2 )
 project( recolor-tool )
 
+include( IdeFileStructure )
+
 find_package( DevIL REQUIRED )
 include_directories( ${IL_INCLUDE_DIR} )
 include_directories( ${IL_INCLUDE_DIR}/.. )
@@ -22,5 +24,6 @@ add_executable( ${PROJECT_NAME}
 
 target_link_libraries( ${PROJECT_NAME} ${libs} )
 
-file(GLOB ALL_SOURCES "*.h" "*.hpp" "*.c" "*.cpp" "*.m" "*.mm" )
-source_group( \\ FILES ${ALL_SOURCES} )
+install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets
+  RUNTIME DESTINATION bin/
+)

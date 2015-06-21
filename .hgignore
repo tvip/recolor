@@ -1,6 +1,8 @@
 syntax: glob
 
 build
+web/build
+web/utils
 
 # ignore python bytecode files
 __pycache__

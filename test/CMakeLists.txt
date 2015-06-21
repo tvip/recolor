@@ -1,6 +1,8 @@
 cmake_minimum_required( VERSION 3.2 )
 project( recolor-test )
 
+include( IdeFileStructure )
+
 find_package( Boost COMPONENTS log unit_test_framework )
 
 if ( ${Boost_FOUND} )
@@ -20,6 +22,3 @@ else()
   message( WARNING "skip recolor test : Boost not found" )
 
 endif()
-
-file(GLOB ALL_SOURCES "*.h" "*.hpp" "*.c" "*.cpp" "*.m" "*.mm" )
-source_group( \\ FILES ${ALL_SOURCES} )
