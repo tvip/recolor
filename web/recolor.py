@@ -1,11 +1,13 @@
 import subprocess
 
-# Simple command
-subprocess.call(['ls', '-1'])
+orig_color = 'orig'
+res_color = 'green'
 
-# Command with shell expansion
-subprocess.call('echo $HOME', shell=True)
-
-subprocess.call('pwd')
-
-subprocess.call(['utils/bin/recolor-tool'])
+subprocess.call([
+  'utils/bin/recolor-tool',
+  'test-data/' + res_color + '/matrix.txt',
+  '-in', 'test-data/' + orig_color + '/tvip_light/resources',
+  '-out', 'test-data/' + res_color + '/tvip_light/resources',
+  '-xpath', '//image[@file]', '-xattr', 'file',
+  '-xml', 'test-data/' + orig_color + '/tvip_light/resources.xml'
+])
