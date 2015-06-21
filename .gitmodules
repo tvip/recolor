@@ -1,3 +1,3 @@
 [submodule "test-data"]
       path = web/test-data
-      url = git+ssh://git@bitbucket.org:iKoznov/recolor-test-data.git
+      url = git://bitbucket.org:iKoznov/recolor-test-data.git
