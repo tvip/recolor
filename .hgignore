@@ -3,6 +3,8 @@ syntax: glob
 build
 web/build
 web/utils
+web/var
+web/tmp
 
 # ignore python bytecode files
 __pycache__
