@@ -1,0 +1,8 @@
+{% extends 'layout/main.html' %}
+{% block content %}
+  <div class='span-20 last prepend-top'>
+    <h2>{{ item.title }}</h2>
+    <div class='span-5 last'>{{ item.date }}</div>
+    <div class='span-19 last'>{{ item.text }}</div>
+  </div>
+{% endblock %}
