@@ -22,12 +22,13 @@ with open('myapp-config.json') as infile:
 #######################################################################
 
 import pickle
-with open('myapp-config', 'wb') as outfile:
+with open('myapp-config.p', 'wb') as outfile:
   print(pickle.dumps(myapp_conf))
   pickle.dump(myapp_conf, outfile)
 
 #######################################################################
 
+
 if __name__ == '__main__':
-  cherrypy.quickstart(Root(), '/myapp', myapp_conf)
+  cherrypy.quickstart(Root(), '/myapp', 'myapp.conf')
 
