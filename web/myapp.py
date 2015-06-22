@@ -8,6 +8,8 @@ class Root(object):
   def index(self):
     return "Hello World!"
 
+#######################################################################
+
 import json
 with open('myapp-config.json', 'w') as outfile:
   json.dump(
@@ -16,6 +18,15 @@ with open('myapp-config.json', 'w') as outfile:
   )
 with open('myapp-config.json') as infile:
   myapp_conf = json.load(infile)
+
+#######################################################################
+
+import pickle
+with open('myapp-config', 'wb') as outfile:
+  print(pickle.dumps(myapp_conf))
+  pickle.dump(myapp_conf, outfile)
+
+#######################################################################
 
 if __name__ == '__main__':
   cherrypy.quickstart(Root(), '/myapp', myapp_conf)
