@@ -6,6 +6,8 @@ import cherrypy
 class Root(object):
   @cherrypy.expose
   def index(self):
+    cherrypy.log('global log')
+    cherrypy.request.app.log('app log')
     return "Hello World!"
 
 #######################################################################
@@ -30,7 +32,8 @@ with open('myapp-config.p', 'wb') as outfile:
 
 
 if __name__ == '__main__':
-  cherrypy.tree.mount(Root(), '/myapp', 'myapp.conf')
+  cherrypy.config.update('server.conf')
+  cherrypy.tree.mount(Root(), '/myapp', open('myapp.conf'))
   cherrypy.engine.start()
   cherrypy.engine.block()
 
