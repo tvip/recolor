@@ -30,5 +30,7 @@ with open('myapp-config.p', 'wb') as outfile:
 
 
 if __name__ == '__main__':
-  cherrypy.quickstart(Root(), '/myapp', 'myapp.conf')
+  cherrypy.tree.mount(Root(), '/myapp', 'myapp.conf')
+  cherrypy.engine.start()
+  cherrypy.engine.block()
 
