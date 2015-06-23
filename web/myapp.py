@@ -1,4 +1,5 @@
 import cherrypy
+import time
 
 
 class Root(object):
@@ -6,4 +7,5 @@ class Root(object):
   def index(self):
     cherrypy.log('global log')
     cherrypy.request.app.log('app log')
+    time.sleep(1)
     return "Hello World!"

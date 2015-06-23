@@ -24,7 +24,7 @@ class AsynchronousFileReader(threading.Thread):
 
 
 def recolor_tool_output(string):
-    cherrypy.request.app.log('recolor-tool log: ' + string)
+  cherrypy.request.app.log('recolor-tool log: ' + string)
 
 
 class Recolor(object):
@@ -33,12 +33,13 @@ class Recolor(object):
   def index(self):
     orig_color = 'orig'
     res_color = 'green'
+    cherrypy.request.app.log('SESSION: ' + cherrypy.session.id)
 
     proc = subprocess.Popen([
         'utils/bin/recolor-tool',
         'test-data/' + res_color + '/matrix.txt',
         '-in', 'test-data/' + orig_color + '/tvip_light/resources',
-        '-out', 'test-data/' + res_color + '/tvip_light/resources',
+        '-out', 'tmp/' + cherrypy.session.id + '/tvip_light/resources',
         '-xpath', '//image[@file]', '-xattr', 'file',
         '-xml', 'test-data/' + orig_color + '/tvip_light/resources.xml'
       ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
