@@ -1,52 +1,38 @@
 import cherrypy
 import subprocess
-
-import sys, os
-import contextlib
+import threading
 
 
-@contextlib.contextmanager
-def monitor(stream, callback):
-  read, write = os.pipe()
-  yield write
-  os.close(write)
-  with os.fdopen(read) as f:
-    for line in f:
-      callback(line)
-      stream.write(line)
+class AsynchronousFileReader(threading.Thread):
+
+  def __init__(self, fd, callback):
+    assert callable(fd.readline)
+    assert callable(callback)
+    threading.Thread.__init__(self)
+    self._fd = fd
+    self._callback = callback
+
+  def run(self):
+    # print('RUN')
+
+    while True:
+      chunk = self._fd.readline()
+      # print('READ', type(chunk), len(chunk), chunk.decode())
+      if not chunk:
+        break
+      self._callback(str(chunk))
 
 
-class MonitoredStream:
-  def __init__(self, stream, callback):
-    self.stream = stream
-    self.callback = callback
-    self._read, self._write = os.pipe()
-
-  def fileno(self):
-    return self._write
-
-  def process(self):
-    os.close(self._write)
-    with os.fdopen(self._read) as f:
-      for line in f:
-        self.callback(line)
-        self.stream.write(line)
-
-
-def f(s):
-  print("Write")
+def recolor_tool_output(string):
+    cherrypy.request.app.log('recolor-tool log: ' + string)
 
 
 class Recolor(object):
-  def recolor_tool_output(self, string):
-    cherrypy.request.app.log(string)
 
   @cherrypy.expose
   def index(self):
     orig_color = 'orig'
     res_color = 'green'
-
-    stream = MonitoredStream(sys.stdout, f)
 
     proc = subprocess.Popen([
         'utils/bin/recolor-tool',
@@ -55,25 +41,18 @@ class Recolor(object):
         '-out', 'test-data/' + res_color + '/tvip_light/resources',
         '-xpath', '//image[@file]', '-xattr', 'file',
         '-xml', 'test-data/' + orig_color + '/tvip_light/resources.xml'
-      ], stdout=stream)
-    proc.terminate()
+      ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    with monitor(sys.stdout, self.recolor_tool_output) as output_log, monitor(sys.stderr, self.recolor_tool_output) as error_log:
-      print(type(output_log), type(error_log))
+    stdout_reader = AsynchronousFileReader(proc.stdout, recolor_tool_output)
+    stdout_reader.start()
 
-      '''
-      proc = subprocess.Popen([
-        'utils/bin/recolor-tool',
-        'test-data/' + res_color + '/matrix.txt',
-        '-in', 'test-data/' + orig_color + '/tvip_light/resources',
-        '-out', 'test-data/' + res_color + '/tvip_light/resources',
-        '-xpath', '//image[@file]', '-xattr', 'file',
-        '-xml', 'test-data/' + orig_color + '/tvip_light/resources.xml'
-      ], stdout=output_log, stderr=error_log)
-      proc.communicate()
-      exitcode = proc.returncode
+    stderr_reader = AsynchronousFileReader(proc.stderr, recolor_tool_output)
+    stderr_reader.start()
 
-      cherrypy.request.app.log(str(exitcode))
-      '''
+    stdout_reader.join()
+    stderr_reader.join()
+
+    proc.stdout.close()
+    proc.stderr.close()
 
     return 'Done'
