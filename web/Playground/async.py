@@ -22,8 +22,14 @@ class AsynchronousFileReader(threading.Thread):
 
   def run(self):
     '''The body of the tread: read lines and put them on the queue.'''
-    for line in iter(self._fd.readline, ''):
-      self._queue.put(line)
+    # print('RUN')
+
+    while True:
+      chunk = self._fd.readline()
+      # print('READ', type(chunk), len(chunk))
+      if not chunk:
+        break
+      self._queue.put(str(chunk))
 
   def eof(self):
     '''Check whether there is no more content to expect.'''
@@ -49,6 +55,8 @@ def consume(command):
 
   # Check the queues if we received some output (until there is nothing more to get).
   while not stdout_reader.eof() or not stderr_reader.eof():
+    # print('SLEEP')
+
     # Show what we received from standard output.
     while not stdout_queue.empty():
       line = stdout_queue.get()
