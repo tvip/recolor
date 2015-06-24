@@ -25,7 +25,7 @@ class AsynchronousFileReader(threading.Thread):
 
 
 def recolor_tool_output(string):
-  cherrypy.request.app.log('recolor-tool log: ' + string)
+  yield cherrypy.request.app.log('recolor-tool log: ' + string)
 
 
 class Recolor(object):
