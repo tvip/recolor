@@ -2,10 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title></title>
+
+  <title>HTML5 Drag and Drop загрузка файлов</title>
+  <link rel="stylesheet" href="style.css">
+
+  <script src="jquery.min.js"></script>
   <script src="recolor.js"></script>
+  <script src="dragndrop.js"></script>
 </head>
 <body onload="recolor()">
+
+<form action="/upload.php">
+  <div id="dropZone">
+    Для загрузки, перетащите файл сюда.
+  </div>
+</form>
 
 </body>
 </html>
