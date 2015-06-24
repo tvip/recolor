@@ -1,6 +1,7 @@
 import cherrypy
 import subprocess
 import threading
+import time
 
 
 class AsynchronousFileReader(threading.Thread):
@@ -30,7 +31,8 @@ def recolor_tool_output(string):
 class Recolor(object):
 
   @cherrypy.expose
-  def index(self):
+  def thing(self):
+    '''
     orig_color = 'orig'
     res_color = 'green'
     cherrypy.request.app.log('SESSION: ' + cherrypy.session.id)
@@ -55,5 +57,14 @@ class Recolor(object):
 
     proc.stdout.close()
     proc.stderr.close()
+    '''
 
-    return 'Done'
+    def content():
+      for i in range(10):
+        yield 'data: ' + str(i) + '\n\n'
+        #time.sleep(1)
+
+    cherrypy.response.headers['Content-Type'] = 'text/event-stream'
+    cherrypy.response.headers['Cache-Control'] = 'no-cache'
+    return content()
+  thing._cp_config = {'response.stream': True}
