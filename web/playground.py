@@ -3,12 +3,6 @@ import queue
 import time
 
 
-class Message:
-  def __init__(self, _type, _data=''):
-    self.type = _type
-    self.data = _data
-
-
 class T(threading.Thread):
   def __init__(self):
     threading.Thread.__init__(self)
@@ -16,13 +10,13 @@ class T(threading.Thread):
 
   def run(self):
     for i in range(3):
-      # time.sleep(1)
+      time.sleep(1)
       # print('post T' + str(i))
-      self.eventQueue.put(Message('message', 'T' + str(i)))
-      # time.sleep(0.3)
+      self.eventQueue.put('T' + str(i))
+      time.sleep(0.3)
       # print('proc T' + str(i))
 
-    self.eventQueue.put(Message('eof'))
+    self.eventQueue.put(None)
 
 
 def gen():
@@ -32,11 +26,11 @@ def gen():
   while True:
     message = t.eventQueue.get(block=True)
 
-    if message.type == 'eof':
-      break
-    elif message.type == 'message':
+    if message:
       # time.sleep(2)
-      yield message.data
+      yield message
+    else:
+      break
 
 
 for s in gen():
