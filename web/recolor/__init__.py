@@ -1,32 +1,6 @@
 import cherrypy
 import subprocess
-import threading
-import queue
-
-
-class AsynchronousFileReader(threading.Thread):
-  def __init__(self, fd):
-    assert callable(fd.readline)
-    threading.Thread.__init__(self)
-    self._fd = fd
-    self._eventQueue = queue.Queue()
-
-  def __iter__(self):
-    while True:
-      message = self._eventQueue.get(block=True)
-      if message:
-        yield message
-      else:
-        break
-
-  def run(self):
-    while True:
-      chunk = self._fd.readline()
-      if not chunk:
-        break
-      self._eventQueue.put(chunk)
-    self._eventQueue.put(None)
-
+from . import util
 
 class Recolor(object):
   @cherrypy.expose
@@ -44,10 +18,10 @@ class Recolor(object):
       '-xml', 'test-data/' + orig_color + '/tvip_light/resources.xml'
     ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    stdout_reader = AsynchronousFileReader(proc.stdout)
+    stdout_reader = util.AsynchronousFileReader(proc.stdout)
     stdout_reader.start()
 
-    stderr_reader = AsynchronousFileReader(proc.stderr)
+    stderr_reader = util.AsynchronousFileReader(proc.stderr)
     stderr_reader.start()
 
     # stderr_reader.join()
@@ -61,5 +35,17 @@ class Recolor(object):
     cherrypy.response.headers['Content-Type'] = 'text/event-stream'
     cherrypy.response.headers['Cache-Control'] = 'no-cache'
     return content()
-
   thing._cp_config = {'response.stream': True}
+
+  @cherrypy.expose()
+  def upload(self):
+    cherrypy.request.app.log('UPLOAD')
+    util.make_sure_path_exists('tmp/' + cherrypy.session.id)
+
+    data = cherrypy.request.body.read()
+    fname = cherrypy.request.headers['X-FILE-NAME']
+    cherrypy.request.app.log('data type: {} len: {} name: {}'.format(type(data), len(data), fname))
+
+    path = 'tmp/{}/{}'.format(cherrypy.session.id, fname)
+    with open(path, 'wb') as file:
+      file.write(data)

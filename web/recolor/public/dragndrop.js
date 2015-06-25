@@ -2,7 +2,7 @@ function dragndrop() {
 
   console.log('drag n drop is ready')
   var dropZone = $('#dropZone'),
-      maxFileSize = 1000000  // максимальный размер фалйа - 1 мб.
+      maxFileSize = 10000000  // максимальный размер фалйа - 10 мб.
 
   // Проверка поддержки браузером
   if (typeof(window.FileReader) == 'undefined') {
@@ -47,8 +47,9 @@ function dragndrop() {
     var xhr = new XMLHttpRequest()
     xhr.upload.addEventListener('progress', uploadProgress, false)
     xhr.onreadystatechange = stateChange
-    xhr.open('POST', '/upload')
+    xhr.open('PUT', '/recolor/upload')
     xhr.setRequestHeader('X-FILE-NAME', file.name)
+    xhr.setRequestHeader('Content-Type', 'image/*')
     xhr.send(file)
   }
 
