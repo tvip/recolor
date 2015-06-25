@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang='en'>
 <head>
-  <meta charset="UTF-8">
+  <meta charset='UTF-8'>
 
   <title>HTML5 Drag and Drop загрузка файлов</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel='stylesheet' href='style.css'>
 
-  <script src="jquery.min.js"></script>
-  <script src="helper.js"></script>
-  <script src="recolor.js"></script>
-  <script src="dragndrop.js"></script>
+  <script src='/recolor/static/jquery-1.11.3.js'></script>
+  <script src='/recolor/static/jquery.cookie.js'></script>
+  <script src='/recolor/static/jquery.session.js'></script>
+  <script src='/recolor/static/helper.js'></script>
+  <script src='/recolor/static/recolor.js'></script>
+  <script src='/recolor/static/dragndrop.js'></script>
   <script>
     $(document).ready(function() {
       // recolor()
@@ -19,8 +21,8 @@
 </head>
 <body>
 
-<form action="/upload.php">
-  <div id="dropZone">
+<form action='/recolor/upload'>
+  <div id='dropZone'>
     Для загрузки, перетащите файл сюда.
   </div>
 </form>

@@ -1,5 +1,7 @@
 function dragndrop() {
 
+  console.log('session: ' + $.cookie('session_id'))
+
   console.log('drag n drop is ready')
   var dropZone = $('#dropZone'),
       maxFileSize = 10000000  // максимальный размер фалйа - 10 мб.
