@@ -2,6 +2,8 @@ import os
 import errno
 import threading
 import queue
+import shutil
+import re
 
 
 def make_sure_path_exists(path):
@@ -10,6 +12,20 @@ def make_sure_path_exists(path):
   except OSError as exception:
     if exception.errno != errno.EEXIST:
       raise
+
+
+# Удаляет все файлы в директории, подходящие по regexp
+def purge(directory, pattern):
+  for f in os.listdir(directory):
+
+    if re.search(pattern, f):
+      path = os.path.join(directory, f)
+
+      if os.path.isdir(path):
+        shutil.rmtree(path)
+
+      elif os.path.isfile(path):
+        os.remove(path)
 
 
 class AsynchronousFileReader(threading.Thread):

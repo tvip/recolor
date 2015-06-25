@@ -1,8 +1,14 @@
 import cherrypy
 import subprocess
 from . import util
+import os
+
 
 class Recolor(object):
+  def __init__(self):
+    object.__init__(self)
+    self.clean_tmp_dir()
+
   @cherrypy.expose
   def thing(self):
     orig_color = 'orig'
@@ -11,11 +17,11 @@ class Recolor(object):
 
     proc = subprocess.Popen([
       'utils/bin/recolor-tool',
-      'test-data/' + res_color + '/matrix.txt',
-      '-in', 'test-data/' + orig_color + '/tvip_light/resources',
-      '-out', 'tmp/' + cherrypy.session.id + '/tvip_light/resources',
+      os.path.join('test-data', res_color, 'matrix.txt'),
+      '-in', os.path.join('test-data', orig_color, 'tvip_light/resources'),
+      '-out', os.path.join('tmp', cherrypy.session.id, 'tvip_light/resources'),
       '-xpath', '//image[@file]', '-xattr', 'file',
-      '-xml', 'test-data/' + orig_color + '/tvip_light/resources.xml'
+      '-xml', os.path.join('test-data', orig_color, 'tvip_light/resources.xml')
     ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     stdout_reader = util.AsynchronousFileReader(proc.stdout)
@@ -35,17 +41,22 @@ class Recolor(object):
     cherrypy.response.headers['Content-Type'] = 'text/event-stream'
     cherrypy.response.headers['Cache-Control'] = 'no-cache'
     return content()
+
   thing._cp_config = {'response.stream': True}
 
   @cherrypy.expose()
   def upload(self):
     cherrypy.request.app.log('UPLOAD')
-    util.make_sure_path_exists('tmp/' + cherrypy.session.id)
+    util.make_sure_path_exists(os.path.join('tmp', cherrypy.session.id))
 
     data = cherrypy.request.body.read()
     fname = cherrypy.request.headers['X-FILE-NAME']
     cherrypy.request.app.log('data type: {} len: {} name: {}'.format(type(data), len(data), fname))
 
-    path = 'tmp/{}/{}'.format(cherrypy.session.id, fname)
+    path = os.path.join('tmp', cherrypy.session.id, fname)
     with open(path, 'wb') as file:
       file.write(data)
+
+  def clean_tmp_dir(self):
+    cherrypy.log('Cleanup tmp dir')
+    util.purge('tmp/', '^(?!\.)')
