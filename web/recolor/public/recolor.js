@@ -4,7 +4,7 @@ function recolor() {
   if (!!window.EventSource) {
     eval( printAllKeyValues( 'EventSource' ) )
 
-    var source = new EventSource('http://127.0.0.1:9090/recolor/thing')
+    var source = new EventSource('/recolor/thing')
     eval( printAllKeyValues( 'source' ) )
 
     source.addEventListener('message', function(e) {

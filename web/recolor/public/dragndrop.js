@@ -1,4 +1,4 @@
-$(document).ready(function() {
+function dragndrop() {
 
   console.log('drag n drop is ready')
   var dropZone = $('#dropZone'),
@@ -47,7 +47,7 @@ $(document).ready(function() {
     var xhr = new XMLHttpRequest()
     xhr.upload.addEventListener('progress', uploadProgress, false)
     xhr.onreadystatechange = stateChange
-    xhr.open('POST', '/upload.php')
+    xhr.open('POST', '/upload')
     xhr.setRequestHeader('X-FILE-NAME', file.name)
     xhr.send(file)
   }
@@ -73,4 +73,4 @@ $(document).ready(function() {
     }
   }
 
-})
+}
