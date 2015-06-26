@@ -16,36 +16,46 @@ class Recolor(object):
     res_color = 'green'
     cherrypy.request.app.log('SESSION: ' + cherrypy.session.id)
 
-    proc = subprocess.Popen([
-      'utils/bin/recolor-tool',
-      os.path.join('test-data', res_color, 'matrix.txt'),
-      '-in', os.path.join('test-data', orig_color, 'tvip_light/resources'),
-      '-out', os.path.join('tmp', cherrypy.session.id, 'tvip_light/resources'),
-      '-xpath', '//image[@file]', '-xattr', 'file',
-      '-xml', os.path.join('test-data', orig_color, 'tvip_light/resources.xml')
-    ], stdout=subprocess.PIPE)  # , stderr=subprocess.PIPE)
+    if 'proc' in cherrypy.session:
+      proc = cherrypy.session.pop('proc')
+      proc.terminate()
+      cherrypy.request.app.log('processing terminated')
+      # proc.stdout.close()
+      # proc.stderr.close()
 
-    stdout_reader = util.AsynchronousFileReader(proc.stdout)
-    stdout_reader.start()
+    '''
+    'utils/bin/recolor-tool',
+    os.path.join('test-data', res_color, 'matrix.txt'),
+    '-in', os.path.join('test-data', orig_color, 'tvip_light/resources'),
+    '-out', os.path.join('tmp', cherrypy.session.id, 'tvip_light/resources'),
+    '-xpath', '//image[@file]', '-xattr', 'file',
+    '-xml', os.path.join('test-data', orig_color, 'tvip_light/resources.xml')
+    '''
+    proc = subprocess.Popen(['utils/bin/dummy'])#, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    cherrypy.session['proc'] = proc
 
-    proc.terminate()
+    # stdout_reader = util.AsynchronousFileReader(proc.stdout)
+    # stdout_reader.start()
 
     # stderr_reader = util.AsynchronousFileReader(proc.stderr)
     # stderr_reader.start()
 
     # stderr_reader.join()
     # proc.stderr.close()
-
+    '''
     def content():
       for msg in stdout_reader:
         yield 'data: ' + str(msg) + '\n\n'
-      proc.stdout.close()
+        proc.stdout.close()
+    '''
+    #cherrypy.response.headers['Content-Type'] = 'text/event-stream'
+    #cherrypy.response.headers['Cache-Control'] = 'no-cache'
+    #proc.wait()
+    #proc.stdout.close()
+    #proc.stderr.close()
+    return 'data: oki\n\n'
 
-    cherrypy.response.headers['Content-Type'] = 'text/event-stream'
-    cherrypy.response.headers['Cache-Control'] = 'no-cache'
-    return content()
-
-  thing._cp_config = {'response.stream': True}
+  #thing._cp_config = {'response.stream': True}
 
   @cherrypy.expose()
   def stdout(self):
@@ -53,7 +63,7 @@ class Recolor(object):
       i = 0
       while True:
         i = i + 1
-        yield 'data: stdout' + str(i) + '\n\n'
+        # yield 'data: stdout' + str(i) + '\n\n'
         time.sleep(1)
         # for msg in stdout_reader:
         #   yield 'data: ' + str(msg) + '\n\n'
@@ -71,7 +81,7 @@ class Recolor(object):
       i = 0
       while True:
         i = i + 1
-        yield 'data: stderr' + str(i) + '\n\n'
+        # yield 'data: stderr' + str(i) + '\n\n'
         time.sleep(1)
 
     cherrypy.response.headers['Content-Type'] = 'text/event-stream'
