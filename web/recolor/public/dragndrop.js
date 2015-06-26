@@ -25,6 +25,7 @@ function dragndrop() {
   // Убираем класс hover
   dropZone[0].ondragleave = function() {
     console.log('ondragleave')
+    dropZone.text('Для загрузки, перетащите файл сюда.')
     dropZone.removeClass('hover')
     return false
   }
@@ -36,23 +37,25 @@ function dragndrop() {
     dropZone.removeClass('hover')
     dropZone.addClass('drop')
 
-    var file = event.dataTransfer.files[0]
+    for (var i = 0; i < event.dataTransfer.files.length; i++) {
+      var file = event.dataTransfer.files[i]
+      console.log('Try to upload file: ' + file.name)
 
-    // Проверяем размер файла
-    if (file.size > maxFileSize) {
-      dropZone.text('Файл слишком большой!')
-      dropZone.addClass('error')
-      return false
+      // Проверяем размер файла
+      if (file.size > maxFileSize) {
+        dropZone.text('Файл слишком большой!')
+        dropZone.addClass('error')
+        return false
+      }
+
+      // Создаем запрос
+      var xhr = new XMLHttpRequest()
+      xhr.upload.addEventListener('progress', uploadProgress, false)
+      xhr.onreadystatechange = stateChange
+      xhr.open('PUT', '/recolor/upload')
+      xhr.setRequestHeader('X-FILE-NAME', file.name)
+      xhr.send(file)
     }
-
-    // Создаем запрос
-    var xhr = new XMLHttpRequest()
-    xhr.upload.addEventListener('progress', uploadProgress, false)
-    xhr.onreadystatechange = stateChange
-    xhr.open('PUT', '/recolor/upload')
-    xhr.setRequestHeader('X-FILE-NAME', file.name)
-    xhr.setRequestHeader('Content-Type', 'image/*')
-    xhr.send(file)
   }
 
   // Показываем процент загрузки
