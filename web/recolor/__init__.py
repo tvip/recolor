@@ -2,6 +2,7 @@ import cherrypy
 import subprocess
 from . import util
 import os
+import time
 
 
 class Recolor(object):
@@ -22,13 +23,15 @@ class Recolor(object):
       '-out', os.path.join('tmp', cherrypy.session.id, 'tvip_light/resources'),
       '-xpath', '//image[@file]', '-xattr', 'file',
       '-xml', os.path.join('test-data', orig_color, 'tvip_light/resources.xml')
-    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    ], stdout=subprocess.PIPE)  # , stderr=subprocess.PIPE)
 
     stdout_reader = util.AsynchronousFileReader(proc.stdout)
     stdout_reader.start()
 
-    stderr_reader = util.AsynchronousFileReader(proc.stderr)
-    stderr_reader.start()
+    proc.terminate()
+
+    # stderr_reader = util.AsynchronousFileReader(proc.stderr)
+    # stderr_reader.start()
 
     # stderr_reader.join()
     # proc.stderr.close()
@@ -45,17 +48,50 @@ class Recolor(object):
   thing._cp_config = {'response.stream': True}
 
   @cherrypy.expose()
+  def stdout(self):
+    def content():
+      i = 0
+      while True:
+        i = i + 1
+        yield 'data: stdout' + str(i) + '\n\n'
+        time.sleep(1)
+        # for msg in stdout_reader:
+        #   yield 'data: ' + str(msg) + '\n\n'
+        # proc.stdout.close()
+
+    cherrypy.response.headers['Content-Type'] = 'text/event-stream'
+    cherrypy.response.headers['Cache-Control'] = 'no-cache'
+    return content()
+
+  stdout._cp_config = {'response.stream': True}
+
+  @cherrypy.expose()
+  def stderr(self):
+    def content():
+      i = 0
+      while True:
+        i = i + 1
+        yield 'data: stderr' + str(i) + '\n\n'
+        time.sleep(1)
+
+    cherrypy.response.headers['Content-Type'] = 'text/event-stream'
+    cherrypy.response.headers['Cache-Control'] = 'no-cache'
+    return content()
+
+  stderr._cp_config = {'response.stream': True}
+
+  @cherrypy.expose()
   def upload(self):
     cherrypy.request.app.log('UPLOAD')
     cherrypy.session['upload'] = True  # почему-то сессии сохраняются, только если что-нибудь у неё записать
-    util.make_sure_path_exists(os.path.join('tmp', cherrypy.session.id))
+    util.make_sure_path_exists(os.path.join('tmp', 'orig', cherrypy.session.id))
 
     data = cherrypy.request.body.read()
 
     fname = cherrypy.request.headers['X-FILE-NAME']
     cherrypy.request.app.log('data type: {} len: {} name: {}'.format(type(data), len(data), fname))
 
-    path = os.path.join('tmp', cherrypy.session.id, fname)
+    path = os.path.join('tmp', 'orig', cherrypy.session.id, fname)
     with open(path, 'wb') as file:
       file.write(data)
 

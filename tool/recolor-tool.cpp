@@ -95,6 +95,18 @@ struct Process {
   
 };
 
+struct ProcessIMG : public Process {
+
+  std::string input_file;
+  std::string output_file;
+
+  virtual void make() {
+    std::cout << "Process IMG \"" << input_file << "\" -> \"" << output_file << "\"; ";
+    Process::make();
+  }
+
+};
+
 struct ProcessXML : public Process {
   std::string fname;
   std::string xpath, attr;
@@ -163,7 +175,13 @@ int main (int argc, char *argv[])
   
   while ( ++c < argc ) {
     std::cout << "ARG: " << argv[c] << std::endl;
-    if ( std::strcmp( argv[c], "-xml" ) == 0 ) {
+    if ( std::strcmp( argv[c], "-img" ) == 0 ) {
+      ProcessIMG *procIMG = new ProcessIMG();
+      procIMG->input_file = argv[++c];
+      procIMG->output_file = argv[++c];
+      proc_queue.push_back( procIMG );
+    }
+    else if ( std::strcmp( argv[c], "-xml" ) == 0 ) {
       ProcessXML *procXML = new ProcessXML( argv[++c] );
       procXML->transition = transition_fname;
       procXML->input_dir = input_dir;
