@@ -18,10 +18,12 @@ class Recolor(object):
 
     if 'proc' in cherrypy.session:
       proc = cherrypy.session.pop('proc')
-      proc.terminate()
-      cherrypy.request.app.log('processing terminated')
-      # proc.stdout.close()
-      # proc.stderr.close()
+      cherrypy.request.app.log('PID: {} POLL: {}'.format(str(proc.pid), str(proc.poll())) )
+      if proc.poll() is None:  # Нет returncode, значит ещё работает
+        cherrypy.request.app.log('interrupt processing')
+        proc.terminate()
+        # proc.stdout.close()
+        # proc.stderr.close()
 
     '''
     'utils/bin/recolor-tool',
