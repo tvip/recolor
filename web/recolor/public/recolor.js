@@ -32,7 +32,7 @@ function redirect_stream(callback, url) {
     var source = new EventSource(url)
 
     source.addEventListener('message', function(e) {
-      eval(callback + '(e.data)')
+      eval(callback + '(window.atob(e.data))')
     }, false)
 
     source.addEventListener('open', function(e) {
