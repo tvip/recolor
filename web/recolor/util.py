@@ -29,15 +29,15 @@ def purge(directory, pattern):
 
 
 class AsynchronousFileReader(threading.Thread):
-  def __init__(self, fd):
+  def __init__(self, fd, eventQueue):
     assert callable(fd.readline)
     threading.Thread.__init__(self)
     self._fd = fd
-    self._eventQueue = queue.Queue()
+    self._eventQueue = eventQueue
 
   def __iter__(self):
     while True:
-      message = self._eventQueue.get(block=True)
+      message = self._eventQueue.pop()
       if message:
         yield message
       else:
@@ -48,5 +48,5 @@ class AsynchronousFileReader(threading.Thread):
       chunk = self._fd.readline()
       if not chunk:
         break
-      self._eventQueue.put(chunk)
-    self._eventQueue.put(None)
+      self._eventQueue.append(chunk)
+    self._eventQueue.append(None)

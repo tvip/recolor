@@ -8,8 +8,14 @@ import queue
 import random
 
 
-stdout_queue = list()
-stderr_queue = list()
+class Pocessing:
+  def __init__(self):
+    self.proc = None
+    self.stdout_queue = list()
+    self.stderr_queue = list()
+
+
+_proc_session = {}
 
 
 class Recolor(object):
@@ -23,12 +29,12 @@ class Recolor(object):
     res_color = 'green'
     cherrypy.request.app.log('SESSION: ' + cherrypy.session.id)
 
-    if 'proc' in cherrypy.session:
-      proc = cherrypy.session.pop('proc')
-      cherrypy.request.app.log('PID: {} POLL: {}'.format(str(proc.pid), str(proc.poll())))
-      if proc.poll() is None:  # Нет returncode, значит ещё работает
+    if cherrypy.session.id in _proc_session:
+      p = _proc_session[cherrypy.session.id]
+      cherrypy.request.app.log('PID: {} POLL: {}'.format(str(p.proc.pid), str(p.proc.poll())))
+      if p.proc.poll() is None:  # Нет returncode, значит ещё работает
         cherrypy.request.app.log('interrupt processing')
-        proc.terminate()
+        p.proc.terminate()
         # proc.stdout.close()
         # proc.stderr.close()
 
@@ -41,14 +47,16 @@ class Recolor(object):
       '-xml', os.path.join('test-data', orig_color, 'tvip_light/resources.xml')
     ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # proc = subprocess.Popen(['utils/bin/dummy'])  # , stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    cherrypy.session['proc'] = proc
 
-    cherrypy.session['stdout_queue'] = stdout_queue
-    stdout_reader = util.AsynchronousFileReader(proc.stdout, stdout_queue)
+    p = Pocessing()
+    p.proc = proc
+    _proc_session[cherrypy.session.id] = p
+    cherrypy.session['processing'] = p
+
+    stdout_reader = util.AsynchronousFileReader(proc.stdout, p.stdout_queue)
     stdout_reader.start()
 
-    cherrypy.session['stderr_queue'] = stderr_queue
-    stderr_reader = util.AsynchronousFileReader(proc.stderr, stderr_queue)
+    stderr_reader = util.AsynchronousFileReader(proc.stderr, p.stderr_queue)
     stderr_reader.start()
 
     # stderr_reader.join()
@@ -74,11 +82,12 @@ class Recolor(object):
 
     def content():
 
-      while True:
+      while cherrypy.session.id in _proc_session:
+        proc = _proc_session[cherrypy.session.id]
         eof = False
 
-        while len(stdout_queue) > 0:
-          message = stdout_queue.pop()
+        while len(proc.stdout_queue) > 0:
+          message = proc.stdout_queue.pop()
 
           if message is not None:
             encoded = base64.b64encode((cherrypy.session.id + message.decode()).rstrip('\r\n').encode())
