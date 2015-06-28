@@ -92,7 +92,6 @@ class Recolor(object):
           if message is not None:
             encoded = base64.b64encode((cherrypy.session.id + message.decode()).rstrip('\r\n').encode())
             yield 'data: ' + encoded.decode() + '\n\n'
-            time.sleep(.1)
           else:
             eof = True
             break
@@ -136,14 +135,14 @@ class Recolor(object):
   def upload(self):
     cherrypy.request.app.log('UPLOAD')
     cherrypy.session['upload'] = True  # почему-то сессии сохраняются, только если что-нибудь у неё записать
-    util.make_sure_path_exists(os.path.join('tmp', 'orig', cherrypy.session.id))
+    util.make_sure_path_exists(os.path.join('tmp', cherrypy.session.id, 'orig'))
 
     data = cherrypy.request.body.read()
 
     fname = cherrypy.request.headers['X-FILE-NAME']
     cherrypy.request.app.log('data type: {} len: {} name: {}'.format(type(data), len(data), fname))
 
-    path = os.path.join('tmp', 'orig', cherrypy.session.id, fname)
+    path = os.path.join('tmp', cherrypy.session.id, 'orig', fname)
     with open(path, 'wb') as file:
       file.write(data)
 
