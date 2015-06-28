@@ -37,7 +37,7 @@ class AsynchronousFileReader(threading.Thread):
 
   def __iter__(self):
     while True:
-      message = self._eventQueue.pop()
+      message = self._eventQueue.get(block=True)
       if message:
         yield message
       else:
@@ -48,5 +48,5 @@ class AsynchronousFileReader(threading.Thread):
       chunk = self._fd.readline()
       if not chunk:
         break
-      self._eventQueue.append(chunk)
-    self._eventQueue.append(None)
+      self._eventQueue.put(chunk)
+    self._eventQueue.put(None)

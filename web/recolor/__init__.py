@@ -11,8 +11,8 @@ import random
 class Pocessing:
   def __init__(self):
     self.proc = None
-    self.stdout_queue = list()
-    self.stderr_queue = list()
+    self.stdout_queue = queue.Queue()
+    self.stderr_queue = queue.Queue()
 
 
 _proc_session = {}
@@ -86,8 +86,8 @@ class Recolor(object):
         proc = _proc_session[cherrypy.session.id]
         eof = False
 
-        while len(proc.stdout_queue) > 0:
-          message = proc.stdout_queue.pop()
+        while not proc.stdout_queue.empty():
+          message = proc.stdout_queue.get()
 
           if message is not None:
             encoded = base64.b64encode((cherrypy.session.id + message.decode()).rstrip('\r\n').encode())
