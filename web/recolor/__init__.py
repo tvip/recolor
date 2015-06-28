@@ -4,6 +4,12 @@ from . import util
 import os
 import time
 import base64
+import queue
+import random
+
+
+stdout_queue = list()
+stderr_queue = list()
 
 
 class Recolor(object):
@@ -37,13 +43,13 @@ class Recolor(object):
     # proc = subprocess.Popen(['utils/bin/dummy'])  # , stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     cherrypy.session['proc'] = proc
 
-    stdout_reader = util.AsynchronousFileReader(proc.stdout)
+    cherrypy.session['stdout_queue'] = stdout_queue
+    stdout_reader = util.AsynchronousFileReader(proc.stdout, stdout_queue)
     stdout_reader.start()
-    cherrypy.session['stdout_reader'] = stdout_reader
 
-    stderr_reader = util.AsynchronousFileReader(proc.stderr)
+    cherrypy.session['stderr_queue'] = stderr_queue
+    stderr_reader = util.AsynchronousFileReader(proc.stderr, stderr_queue)
     stderr_reader.start()
-    cherrypy.session['stderr_reader'] = stderr_reader
 
     # stderr_reader.join()
     # proc.stderr.close()
@@ -67,11 +73,25 @@ class Recolor(object):
   def stdout(self):
 
     def content():
-      if 'stdout_reader' in cherrypy.session:
-        stdout_reader = cherrypy.session['stdout_reader']
-        for msg in stdout_reader:
-          encoded = base64.b64encode(msg.decode().rstrip('\r\n').encode())
-          yield 'data: ' + encoded.decode() + '\n\n'
+
+      while True:
+        eof = False
+
+        while len(stdout_queue) > 0:
+          message = stdout_queue.pop()
+
+          if message is not None:
+            encoded = base64.b64encode((cherrypy.session.id + message.decode()).rstrip('\r\n').encode())
+            yield 'data: ' + encoded.decode() + '\n\n'
+            time.sleep(.1)
+          else:
+            eof = True
+            break
+
+        if eof:
+          break
+
+        time.sleep(.1)
 
     cherrypy.response.headers['Content-Type'] = 'text/event-stream'
     cherrypy.response.headers['Cache-Control'] = 'no-cache'
@@ -81,13 +101,21 @@ class Recolor(object):
 
   @cherrypy.expose()
   def stderr(self):
-
+    '''
     def content():
       if 'stderr_reader' in cherrypy.session:
         stderr_reader = cherrypy.session['stderr_reader']
         for msg in stderr_reader:
           encoded = base64.b64encode(msg.decode().rstrip('\r\n').encode())
           yield 'data: ' + encoded.decode() + '\n\n'
+    '''
+
+    def content():
+      i = 0
+      while True:
+        i = i + 1
+        yield 'data: stderr' + str(i) + '\n\n'
+        time.sleep(.2)
 
     cherrypy.response.headers['Content-Type'] = 'text/event-stream'
     cherrypy.response.headers['Cache-Control'] = 'no-cache'
