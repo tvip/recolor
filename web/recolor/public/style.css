@@ -33,3 +33,7 @@ body {
   background: #afa;
   border-color: #0f0;
 }
+
+#color_map {
+  border: 1px solid #ccc;
+}
