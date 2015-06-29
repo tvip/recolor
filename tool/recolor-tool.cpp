@@ -103,6 +103,8 @@ struct ProcessIMG : public Process {
   virtual void make() {
     std::cout << "Process IMG \"" << input_file << "\" -> \"" << output_file << "\"; ";
     Process::make();
+
+    process_image(input_file, output_file);
   }
 
 };

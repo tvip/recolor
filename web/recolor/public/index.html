@@ -14,8 +14,8 @@
   <script src='/recolor/static/recolor.js'></script>
   <script>
     $(document).ready(function() {
-      recolor()
-      redirect_stdout()
+      //recolor()
+      //redirect_stdout()
       //redirect_stderr()
       dragndrop()
     })
@@ -26,6 +26,25 @@
 <div id='dropZone'>
   Для загрузки, перетащите файл сюда.
 </div>
+
+<img id='img' />
+
+<form id="matrix_form" action="/recolor/matrix" method="post">
+  <p><b>Введите матрицу преобразования:</b></p>
+  <p><textarea rows="10" cols="45" id="matrix" name="matrix">
+
+    0    0    0        0    0    0
+    0    0    1        0    0    1
+    0    1    0        0    1    0
+    0    1    1        0    1    1
+    1    0    0        1    0    0
+    1    0    1        1    0    1
+    1    1    0        1    1    0
+    1    1    1        1    1    1
+
+  </textarea></p>
+  <p><input type="submit" value="Применить"></p>
+</form>
 
 </body>
 </html>

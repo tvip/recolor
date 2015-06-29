@@ -136,15 +136,46 @@ class Recolor(object):
     cherrypy.request.app.log('UPLOAD')
     cherrypy.session['upload'] = True  # почему-то сессии сохраняются, только если что-нибудь у неё записать
     util.make_sure_path_exists(os.path.join('tmp', cherrypy.session.id, 'orig'))
+    util.make_sure_path_exists(os.path.join('tmp', cherrypy.session.id, 'res'))
 
     data = cherrypy.request.body.read()
 
     fname = cherrypy.request.headers['X-FILE-NAME']
     cherrypy.request.app.log('data type: {} len: {} name: {}'.format(type(data), len(data), fname))
+    fname = 'img' + os.path.splitext(fname)[1]
 
     path = os.path.join('tmp', cherrypy.session.id, 'orig', fname)
     with open(path, 'wb') as file:
       file.write(data)
+
+  @cherrypy.expose()
+  def matrix(self, matrix):
+    cherrypy.request.app.log('MATRIX', matrix)
+    cherrypy.session['matrix'] = True
+    util.make_sure_path_exists(os.path.join('tmp', cherrypy.session.id))
+
+    matrix_path = os.path.join('tmp', cherrypy.session.id, 'matrix.txt')
+    with open(matrix_path, 'w') as file:
+      file.write(matrix)
+
+    fname = 'img.png'
+
+    proc = subprocess.Popen([
+      'utils/bin/recolor-tool',
+      os.path.join('tmp', cherrypy.session.id, 'matrix.txt'),
+      '-img',
+      os.path.join('tmp', cherrypy.session.id, 'orig', fname),
+      os.path.join('tmp', cherrypy.session.id, 'res', fname)
+    ])
+
+    proc.communicate()
+
+    with open(os.path.join('tmp', cherrypy.session.id, 'res', fname), 'rb') as res_file:
+      # print(str(type(res_file)))
+      encoded = base64.b64encode(res_file.read())
+
+    # print(encoded)
+    return encoded
 
   def clean_tmp_dir(self):
     cherrypy.log('Cleanup tmp dir')
