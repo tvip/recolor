@@ -1,5 +1,6 @@
 import threading
 import multiprocessing
+import subprocess
 import queue
 import time
 
@@ -66,7 +67,7 @@ p2.join()
 print("--- {} seconds ---".format(time.time() - start_time))
 '''
 
-
+'''
 def f(q):
   q.put('X ' * 10000)
 
@@ -83,3 +84,58 @@ if __name__ == '__main__':
   print(obj)
 
   print("--- {} seconds ---".format(time.time() - start_time))
+'''
+
+
+def f(e1, e2):
+  with open('playground.py') as file:
+    while True:
+      e1.wait()
+      e1.clear()
+      line = file.readline()
+      if not line:
+        e2.set()
+        break
+      print(threading.current_thread(), line.rstrip())
+      time.sleep(0.01)
+      e2.set()
+
+
+class AsynchronousFileReader(threading.Thread):
+  def __init__(self, fd):
+    assert callable(fd.readline)
+    threading.Thread.__init__(self)
+    self._fd = fd
+
+  def run(self):
+    while True:
+      chunk = self._fd.readline()
+      if not chunk:
+        break
+      print(threading.current_thread(), chunk)
+
+
+if __name__ == '__main__':
+  print(threading.current_thread(), 'main')
+
+  e = threading.Event()
+
+  t1 = threading.Thread(target=f, args=(e, e))
+  t2 = threading.Thread(target=f, args=(e, e))
+
+  t1.start()
+  t2.start()
+
+  e.set()
+
+  ##########################################
+
+  proc = subprocess.Popen([
+    'utils/bin/dummy'
+  ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+  stdout_reader = AsynchronousFileReader(proc.stdout)
+  stdout_reader.start()
+
+  stderr_reader = AsynchronousFileReader(proc.stderr)
+  stderr_reader.start()
