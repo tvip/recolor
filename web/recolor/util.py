@@ -29,11 +29,11 @@ def purge(directory, pattern):
 
 
 class AsynchronousFileReader(threading.Thread):
-  def __init__(self, fd):
+  def __init__(self, fd, eventQueue):
     assert callable(fd.readline)
     threading.Thread.__init__(self)
     self._fd = fd
-    self._eventQueue = queue.Queue()
+    self._eventQueue = eventQueue
 
   def __iter__(self):
     while True:
