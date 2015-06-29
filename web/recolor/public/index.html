@@ -5,7 +5,7 @@
 
   <title>HTML5 Drag and Drop загрузка файлов</title>
 
-  <link rel="stylesheet" href='/recolor/static/colpick.css' />
+  <link rel='stylesheet' href='/recolor/static/colpick.css' />
 
   <link rel='stylesheet' href='/recolor/static/style.css' />
 
@@ -34,11 +34,11 @@
   Для загрузки, перетащите файл сюда.
 </div>
 
-<img id='img' />
+<img id='img' src='' />
 
-<form id="matrix_form" action="/recolor/matrix" method="post">
+<form id='matrix_form' action='/recolor/matrix' method='post'>
   <p><b>Введите матрицу преобразования:</b></p>
-  <p><textarea rows="10" cols="45" id="matrix" name="matrix">
+  <p><textarea rows='10' cols='45' id='matrix' name='matrix'>
 
     0    0    0        0    0    0
     0    0    1        0    0    1
@@ -50,7 +50,7 @@
     1    1    1        1    1    1
 
   </textarea></p>
-  <p><input type="submit" value="Применить"></p>
+  <p><input type='submit' value='Применить'></p>
 </form>
 
 <canvas height='320' width='480' id='color_map'>Canvas не поддерживается браузером</canvas>
