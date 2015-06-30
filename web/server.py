@@ -8,6 +8,7 @@ import os
 import band
 import myapp
 import recolor
+import recolor.stream
 
 
 def setup_config(template_fname, result_fname, env):
@@ -37,6 +38,16 @@ if __name__ == '__main__':
 
   cherrypy.tree.mount(
     recolor.Recolor(), '/recolor',
+    setup_config(
+      template_fname='recolor/root.conf',
+      result_fname='var/recolor.conf',
+      env={
+        'staticdir': os.path.join(os.path.abspath(os.getcwd()), 'recolor')
+      }
+    ))
+
+  cherrypy.tree.mount(
+    recolor.stream.Stream(), '/streaming',
     setup_config(
       template_fname='recolor/root.conf',
       result_fname='var/recolor.conf',

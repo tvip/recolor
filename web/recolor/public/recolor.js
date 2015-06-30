@@ -56,3 +56,11 @@ function redirect_stdout() {
 function redirect_stderr() {
   redirect_stream('console.error', '/recolor/stderr')
 }
+
+function stream_stdout() {
+  redirect_stream('console.log', '/streaming/stdout')
+}
+
+function stream_stderr() {
+  redirect_stream('console.error', '/streaming/stderr')
+}

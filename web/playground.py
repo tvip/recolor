@@ -106,13 +106,24 @@ class AsynchronousFileReader(threading.Thread):
     assert callable(fd.readline)
     threading.Thread.__init__(self)
     self._fd = fd
+    self.queue = queue.Queue()
+
+  def __iter__(self):
+    self.start()
+    while True:
+      message = self.queue.get(block=True)
+      if message:
+        yield message
+      else:
+        break
 
   def run(self):
     while True:
       chunk = self._fd.readline()
       if not chunk:
+        self.queue.put('')
         break
-      print(threading.current_thread(), chunk)
+      self.queue.put( '{} {}'.format( str(threading.current_thread()), chunk ) )
 
 
 if __name__ == '__main__':
@@ -135,7 +146,14 @@ if __name__ == '__main__':
   ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
   stdout_reader = AsynchronousFileReader(proc.stdout)
-  stdout_reader.start()
-
   stderr_reader = AsynchronousFileReader(proc.stderr)
-  stderr_reader.start()
+
+  def output(reader):
+    for msg in reader:
+      print(msg)
+
+  o1 = threading.Thread(target=output, args=(stdout_reader,))
+  o2 = threading.Thread(target=output, args=(stderr_reader,))
+
+  o1.start()
+  o2.start()

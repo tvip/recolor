@@ -6,6 +6,7 @@ import time
 import base64
 import queue
 import random
+import threading
 
 
 class Pocessing:
@@ -133,7 +134,7 @@ class Recolor(object):
 
   @cherrypy.expose()
   def upload(self):
-    cherrypy.request.app.log('UPLOAD')
+    cherrypy.request.app.log('UPLOAD {}'.format( str(threading.current_thread()) ))
     cherrypy.session['upload'] = True  # почему-то сессии сохраняются, только если что-нибудь у неё записать
     util.make_sure_path_exists(os.path.join('tmp', cherrypy.session.id, 'orig'))
     util.make_sure_path_exists(os.path.join('tmp', cherrypy.session.id, 'res'))
@@ -150,7 +151,7 @@ class Recolor(object):
 
   @cherrypy.expose()
   def matrix(self, matrix):
-    cherrypy.request.app.log('MATRIX', matrix)
+    cherrypy.request.app.log('MATRIX {} {}'.format(str(threading.current_thread()), matrix))
     cherrypy.session['matrix'] = True
     util.make_sure_path_exists(os.path.join('tmp', cherrypy.session.id))
 
