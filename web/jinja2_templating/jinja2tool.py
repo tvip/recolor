@@ -3,25 +3,38 @@ import cherrypy
 
 __all__ = ['Jinja2Tool']
 
+
 class Jinja2Tool(cherrypy.Tool):
-    def __init__(self):
-        cherrypy.Tool.__init__(self, 'before_finalize',
-                               self._render,
-                               priority=10)
-        
-    def _render(self, template=None, debug=False):
-        """
-        Applied once your page handler has been called. It
-        looks up the template from the various template directories
-        defined in the Jinja2 plugin then renders it with
-        whatever dictionary the page handler returned.
-        """
-        if cherrypy.response.status > 399:
-            return
+  def __init__(self):
+    cherrypy.Tool.__init__(self, 'before_finalize',
+                           self._render,
+                           priority=10)
 
-        # retrieve the data returned by the handler
-        data = cherrypy.response.body or {}
-        template = cherrypy.engine.publish("lookup-template", template).pop()
+  def _render(self, template=None, debug=False):
+    """
+    Applied once your page handler has been called. It
+    looks up the template from the various template directories
+    defined in the Jinja2 plugin then renders it with
+    whatever dictionary the page handler returned.
+    """
 
-        if template and isinstance(data, dict):
-            cherrypy.response.body = template.render(**data)
+    #print(dir(cherrypy.response))
+    #print(type(cherrypy.response.status))
+    #print(cherrypy.response.status)
+
+    if cherrypy.response.status is not None and cherrypy.response.status > 399:
+      return
+
+    # retrieve the data returned by the handler
+    data = cherrypy.response.body or {}
+    template = cherrypy.engine.publish("lookup-template", template).pop()
+
+    #print('Template', template)
+    #print('Response', cherrypy.response)
+    #print('Body', cherrypy.response.body)
+    #print('Body', type(cherrypy.response.body))
+
+    #print('Render', template.render(data))
+
+    if template and isinstance(data, dict):
+      cherrypy.response.body = template.render(data).encode()
