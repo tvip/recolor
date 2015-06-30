@@ -13,13 +13,13 @@ if __name__ == '__main__':
   cherrypy.config.update({'server.socket_port': 8090})
   # Register the Jinja2 plugin
   from jinja2 import Environment, FileSystemLoader
-  from .jinja2plugin import Jinja2TemplatePlugin
+  from jinja2plugin import Jinja2TemplatePlugin
 
   env = Environment(loader=FileSystemLoader('.'))
   Jinja2TemplatePlugin(cherrypy.engine, env=env).subscribe()
 
   # Register the Jinja2 tool
-  from .jinja2tool import Jinja2Tool
+  from jinja2tool import Jinja2Tool
 
   cherrypy.tools.template = Jinja2Tool()
 
