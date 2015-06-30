@@ -23,7 +23,7 @@ class Jinja2TemplatePlugin(plugins.SimplePlugin):
     """
     Called when the engine stops.
     """
-    self.bus.log('Freeing up Mako resources')
+    self.bus.log('Freeing up Jinja2 resources')
     self.bus.unsubscribe("lookup-template", self.get_template)
     self.env = None
 

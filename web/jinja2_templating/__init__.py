@@ -6,7 +6,14 @@ import cherrypy
 class Root(object):
   @cherrypy.expose
   def index(self):
+    template = cherrypy.engine.publish('lookup-template', 'index.html').pop()
+    print('Index', template)
     return {'msg': 'Hello world!'}
+
+  @cherrypy.expose
+  #@cherrypy.tools.jinja2tool(name='abc.html')
+  def abc(self):
+    return {'msg': 'msg'}
 
 
 if __name__ == '__main__':

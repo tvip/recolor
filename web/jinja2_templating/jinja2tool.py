@@ -30,7 +30,7 @@ class Jinja2Tool(cherrypy.Tool):
     data = cherrypy.response.body or {}
     template = cherrypy.engine.publish("lookup-template", template).pop()
 
-    # print('Template', template)
+    print('Render Template', template)
     # print('Response', cherrypy.response)
     # print('Body', cherrypy.response.body)
     # print('Body', type(cherrypy.response.body))
@@ -38,4 +38,4 @@ class Jinja2Tool(cherrypy.Tool):
     # print('Render', template.render(data))
 
     if template and isinstance(data, dict):
-      cherrypy.response.body = template.render(data).encode()
+      cherrypy.response.body = template.render(**data).encode()
