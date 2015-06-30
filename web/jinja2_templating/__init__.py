@@ -15,7 +15,7 @@ if __name__ == '__main__':
   from jinja2 import Environment, FileSystemLoader
   from jinja2plugin import Jinja2TemplatePlugin
 
-  env = Environment(loader=FileSystemLoader('.'))
+  env = Environment(loader=FileSystemLoader('templates'))
   Jinja2TemplatePlugin(cherrypy.engine, env=env).subscribe()
 
   # Register the Jinja2 tool
