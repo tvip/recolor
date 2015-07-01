@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os.path
 import cherrypy
+from jinja2tool import Jinja2Tool
 
 
 class Root(object):
@@ -11,9 +12,14 @@ class Root(object):
     return {'msg': 'Hello world!'}
 
   @cherrypy.expose
-  #@cherrypy.tools.jinja2tool(name='abc.html')
+  @cherrypy.tools.template(template='abc.html')
   def abc(self):
     return {'msg': 'msg'}
+
+  @cherrypy.expose
+  @cherrypy.tools.template(template='index.html')
+  def orc(self):
+    return {'msg': 'Hell Scream'}
 
 
 if __name__ == '__main__':

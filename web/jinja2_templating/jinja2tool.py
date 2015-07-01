@@ -39,3 +39,5 @@ class Jinja2Tool(cherrypy.Tool):
 
     if template and isinstance(data, dict):
       cherrypy.response.body = template.render(**data).encode()
+
+cherrypy.tools.template = Jinja2Tool()
