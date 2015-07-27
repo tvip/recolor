@@ -33,6 +33,13 @@ static unsigned combination(unsigned n, unsigned k) {
 
 BOOST_AUTO_TEST_CASE ( CombinationTest )
 {
+  {
+    // отключение логов нужно для того, чтобы valgrind не ругался на boost::log
+    // TODO: придумать куда лучше перенести отлючение логов для юнит-тестов
+    auto logging = boost::log::core::get();
+    logging->set_logging_enabled(false);
+  }
+  
   BOOST_CHECK_EQUAL(combination(1, 1), 1);
   BOOST_CHECK_EQUAL(combination(3, 1), 3);
   BOOST_CHECK_EQUAL(combination(5, 5), 1);
@@ -50,7 +57,7 @@ BOOST_AUTO_TEST_CASE( RecolorVoloumeTest )
   BOOST_CHECK_LT(glm::abs(T::volume(t) - 0.167), T::_accuracy);
   BOOST_LOG_TRIVIAL(trace) << "VOLUME : " << T::volume(t);
 }
-
+#if 1
 BOOST_AUTO_TEST_CASE ( RecolorSubsetTest )
 {
   std::vector<T::Transition > transition;
@@ -334,3 +341,4 @@ BOOST_AUTO_TEST_CASE ( RecolorTest )
     BOOST_LOG_TRIVIAL(info) << boost::format("TRANSITION : %s -> %s") %glm::to_string(origin) %glm::to_string(result);
   }
 }
+#endif
