@@ -125,8 +125,7 @@ class AsynchronousFileReader(threading.Thread):
             if not chunk:
                 self.queue.put('')
                 break
-            self.queue.put(
-                '{} {}'.format(str(threading.current_thread()), chunk))
+            self.queue.put('{} {}'.format(str(threading.current_thread()), chunk))
 
 
 if __name__ == '__main__':
@@ -142,7 +141,7 @@ if __name__ == '__main__':
 
     e.set()
 
-    ##########################################
+##########################################
 
     proc = subprocess.Popen([
         'utils/bin/dummy'

@@ -34,8 +34,7 @@ class Recolor(object):
 
         if cherrypy.session.id in _proc_session:
             p = _proc_session[cherrypy.session.id]
-            cherrypy.request.app.log(
-                'PID: {} POLL: {}'.format(str(p.proc.pid), str(p.proc.poll())))
+            cherrypy.request.app.log('PID: {} POLL: {}'.format(str(p.proc.pid), str(p.proc.poll())))
             if p.proc.poll() is None:  # Нет returncode, значит ещё работает
                 cherrypy.request.app.log('interrupt processing')
                 p.proc.terminate()
@@ -45,13 +44,10 @@ class Recolor(object):
         proc = subprocess.Popen([
             'utils/bin/recolor-tool',
             os.path.join('test-data', res_color, 'matrix.txt'),
-            '-in', os.path.join('test-data', orig_color,
-                                'tvip_light/resources'),
-            '-out', os.path.join('tmp', cherrypy.session.id,
-                                 'tvip_light/resources'),
+            '-in', os.path.join('test-data', orig_color, 'tvip_light/resources'),
+            '-out', os.path.join('tmp', cherrypy.session.id, 'tvip_light/resources'),
             '-xpath', '//image[@file]', '-xattr', 'file',
-            '-xml', os.path.join('test-data', orig_color,
-                                 'tvip_light/resources.xml')
+            '-xml', os.path.join('test-data', orig_color, 'tvip_light/resources.xml')
         ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         # proc = subprocess.Popen(['utils/bin/dummy'])  # ,
         # stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -61,12 +57,10 @@ class Recolor(object):
         _proc_session[cherrypy.session.id] = p
         cherrypy.session['processing'] = p
 
-        stdout_reader = util.AsynchronousFileReader(
-            proc.stdout, p.stdout_queue)
+        stdout_reader = util.AsynchronousFileReader(proc.stdout, p.stdout_queue)
         stdout_reader.start()
 
-        stderr_reader = util.AsynchronousFileReader(
-            proc.stderr, p.stderr_queue)
+        stderr_reader = util.AsynchronousFileReader(proc.stderr, p.stderr_queue)
         stderr_reader.start()
 
         # stderr_reader.join()
@@ -100,8 +94,7 @@ class Recolor(object):
                     message = proc.stdout_queue.get()
 
                     if message is not None:
-                        encoded = base64.b64encode(
-                            (cherrypy.session.id + message.decode()).rstrip('\r\n').encode())
+                        encoded = base64.b64encode((cherrypy.session.id + message.decode()).rstrip('\r\n').encode())
                         yield 'data: ' + encoded.decode() + '\n\n'
                     else:
                         eof = True
@@ -144,20 +137,16 @@ class Recolor(object):
 
     @cherrypy.expose()
     def upload(self):
-        cherrypy.request.app.log(
-            'UPLOAD {}'.format(str(threading.current_thread())))
+        cherrypy.request.app.log('UPLOAD {}'.format(str(threading.current_thread())))
         # почему-то сессии сохраняются, только если что-нибудь у неё записать
         cherrypy.session['upload'] = True
-        util.make_sure_path_exists(
-            os.path.join('tmp', cherrypy.session.id, 'orig'))
-        util.make_sure_path_exists(
-            os.path.join('tmp', cherrypy.session.id, 'res'))
+        util.make_sure_path_exists(os.path.join('tmp', cherrypy.session.id, 'orig'))
+        util.make_sure_path_exists(os.path.join('tmp', cherrypy.session.id, 'res'))
 
         data = cherrypy.request.body.read()
 
         fname = cherrypy.request.headers['X-FILE-NAME']
-        cherrypy.request.app.log(
-            'data type: {} len: {} name: {}'.format(type(data), len(data), fname))
+        cherrypy.request.app.log('data type: {} len: {} name: {}'.format(type(data), len(data), fname))
         fname = 'img' + os.path.splitext(fname)[1]
 
         path = os.path.join('tmp', cherrypy.session.id, 'orig', fname)
@@ -166,8 +155,7 @@ class Recolor(object):
 
     @cherrypy.expose()
     def matrix(self, matrix):
-        cherrypy.request.app.log(
-            'MATRIX {} {}'.format(str(threading.current_thread()), matrix))
+        cherrypy.request.app.log('MATRIX {} {}'.format(str(threading.current_thread()), matrix))
         cherrypy.session['matrix'] = True
         util.make_sure_path_exists(os.path.join('tmp', cherrypy.session.id))
 
