@@ -9,8 +9,8 @@ bootstrap()
 
 # debugging purpose, e.g. run with PyDev debugger
 if __name__ == '__main__':
-  import cherrypy
+    import cherrypy
 
-  cherrypy.engine.signals.subscribe()
-  cherrypy.engine.start()
-  cherrypy.engine.block()
+    cherrypy.engine.signals.subscribe()
+    cherrypy.engine.start()
+    cherrypy.engine.block()

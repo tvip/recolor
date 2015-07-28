@@ -5,10 +5,11 @@ env = Environment(loader=FileSystemLoader('templates'))
 
 
 class Root:
-  @cherrypy.expose
-  def index(self):
-    tmpl = env.get_template('index.html')
-    return tmpl.render(salutation='Hello', target='World')
+
+    @cherrypy.expose
+    def index(self):
+        tmpl = env.get_template('index.html')
+        return tmpl.render(salutation='Hello', target='World')
 
 
 cherrypy.config.update({'server.socket_host': '127.0.0.1',

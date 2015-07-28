@@ -6,28 +6,29 @@ import time
 
 
 class T(threading.Thread):
-  def __init__(self):
-    threading.Thread.__init__(self)
-    self.eventQueue = queue.Queue()
 
-  def run(self):
-    for i in range(3):
-      # time.sleep(1)
-      # print('post T' + str(i))
-      self.eventQueue.put('T' + str(i))
-      # time.sleep(0.3)
-      # print('proc T' + str(i))
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.eventQueue = queue.Queue()
 
-    self.eventQueue.put(None)
+    def run(self):
+        for i in range(3):
+            # time.sleep(1)
+            # print('post T' + str(i))
+            self.eventQueue.put('T' + str(i))
+            # time.sleep(0.3)
+            # print('proc T' + str(i))
 
-  def __iter__(self):
-    while True:
-      message = self.eventQueue.get(block=True)
-      if message:
-        # time.sleep(2)
-        yield message
-      else:
-        break
+        self.eventQueue.put(None)
+
+    def __iter__(self):
+        while True:
+            message = self.eventQueue.get(block=True)
+            if message:
+                # time.sleep(2)
+                yield message
+            else:
+                break
 
 
 '''
@@ -88,72 +89,74 @@ if __name__ == '__main__':
 
 
 def f(e1, e2):
-  with open('playground.py') as file:
-    while True:
-      e1.wait()
-      e1.clear()
-      line = file.readline()
-      if not line:
-        e2.set()
-        break
-      print(threading.current_thread(), line.rstrip())
-      time.sleep(0.01)
-      e2.set()
+    with open('playground.py') as file:
+        while True:
+            e1.wait()
+            e1.clear()
+            line = file.readline()
+            if not line:
+                e2.set()
+                break
+            print(threading.current_thread(), line.rstrip())
+            time.sleep(0.01)
+            e2.set()
 
 
 class AsynchronousFileReader(threading.Thread):
-  def __init__(self, fd):
-    assert callable(fd.readline)
-    threading.Thread.__init__(self)
-    self._fd = fd
-    self.queue = queue.Queue()
 
-  def __iter__(self):
-    self.start()
-    while True:
-      message = self.queue.get(block=True)
-      if message:
-        yield message
-      else:
-        break
+    def __init__(self, fd):
+        assert callable(fd.readline)
+        threading.Thread.__init__(self)
+        self._fd = fd
+        self.queue = queue.Queue()
 
-  def run(self):
-    while True:
-      chunk = self._fd.readline()
-      if not chunk:
-        self.queue.put('')
-        break
-      self.queue.put( '{} {}'.format( str(threading.current_thread()), chunk ) )
+    def __iter__(self):
+        self.start()
+        while True:
+            message = self.queue.get(block=True)
+            if message:
+                yield message
+            else:
+                break
+
+    def run(self):
+        while True:
+            chunk = self._fd.readline()
+            if not chunk:
+                self.queue.put('')
+                break
+            self.queue.put(
+                '{} {}'.format(str(threading.current_thread()), chunk))
 
 
 if __name__ == '__main__':
-  print(threading.current_thread(), 'main')
+    print(threading.current_thread(), 'main')
 
-  e = threading.Event()
+    e = threading.Event()
 
-  t1 = threading.Thread(target=f, args=(e, e))
-  t2 = threading.Thread(target=f, args=(e, e))
+    t1 = threading.Thread(target=f, args=(e, e))
+    t2 = threading.Thread(target=f, args=(e, e))
 
-  t1.start()
-  t2.start()
+    t1.start()
+    t2.start()
 
-  e.set()
+    e.set()
 
-  ##########################################
+    ##########################################
 
-  proc = subprocess.Popen([
-    'utils/bin/dummy'
-  ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen([
+        'utils/bin/dummy'
+    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-  stdout_reader = AsynchronousFileReader(proc.stdout)
-  stderr_reader = AsynchronousFileReader(proc.stderr)
+    stdout_reader = AsynchronousFileReader(proc.stdout)
+    stderr_reader = AsynchronousFileReader(proc.stderr)
 
-  def output(reader):
-    for msg in reader:
-      print(msg)
+    def output(reader):
+        for msg in reader:
+            print(msg)
 
-  o1 = threading.Thread(target=output, args=(stdout_reader,))
-  o2 = threading.Thread(target=output, args=(stderr_reader,))
+    o1 = threading.Thread(target=output, args=(stdout_reader,))
+    o2 = threading.Thread(target=output, args=(stderr_reader,))
 
-  o1.start()
-  o2.start()
+    o1.start()
+    o2.start()

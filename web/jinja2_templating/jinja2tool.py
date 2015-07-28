@@ -5,39 +5,40 @@ __all__ = ['Jinja2Tool']
 
 
 class Jinja2Tool(cherrypy.Tool):
-  def __init__(self):
-    cherrypy.Tool.__init__(
-      self, 'before_finalize', self._render,
-      priority=10
-    )
 
-  def _render(self, template=None, debug=False):
-    """
-    Applied once your page handler has been called. It
-    looks up the template from the various template directories
-    defined in the Jinja2 plugin then renders it with
-    whatever dictionary the page handler returned.
-    """
+    def __init__(self):
+        cherrypy.Tool.__init__(
+            self, 'before_finalize', self._render,
+            priority=10
+        )
 
-    # print(dir(cherrypy.response))
-    # print(type(cherrypy.response.status))
-    # print(cherrypy.response.status)
+    def _render(self, template=None, debug=False):
+        """
+        Applied once your page handler has been called. It
+        looks up the template from the various template directories
+        defined in the Jinja2 plugin then renders it with
+        whatever dictionary the page handler returned.
+        """
 
-    if cherrypy.response.status is not None and cherrypy.response.status > 399:
-      return
+        # print(dir(cherrypy.response))
+        # print(type(cherrypy.response.status))
+        # print(cherrypy.response.status)
 
-    # retrieve the data returned by the handler
-    data = cherrypy.response.body or {}
-    template = cherrypy.engine.publish("lookup-template", template).pop()
+        if cherrypy.response.status is not None and cherrypy.response.status > 399:
+            return
 
-    print('Render Template', template)
-    # print('Response', cherrypy.response)
-    # print('Body', cherrypy.response.body)
-    # print('Body', type(cherrypy.response.body))
+        # retrieve the data returned by the handler
+        data = cherrypy.response.body or {}
+        template = cherrypy.engine.publish("lookup-template", template).pop()
 
-    # print('Render', template.render(data))
+        print('Render Template', template)
+        # print('Response', cherrypy.response)
+        # print('Body', cherrypy.response.body)
+        # print('Body', type(cherrypy.response.body))
 
-    if template and isinstance(data, dict):
-      cherrypy.response.body = template.render(**data).encode()
+        # print('Render', template.render(data))
+
+        if template and isinstance(data, dict):
+            cherrypy.response.body = template.render(**data).encode()
 
 cherrypy.tools.template = Jinja2Tool()

@@ -3,12 +3,10 @@
 __author__ = 'ikoznov'
 
 
-
 import sys
 
 print("Module", __name__)
 print("sys.path", sys.path)
-
 
 
 from jinja2 import Template
@@ -16,7 +14,6 @@ from jinja2 import Template
 template = Template('Hello {{ name }}!')
 print(template.render(name='John Doe'))
 print()
-
 
 
 from jinja2 import Environment, PackageLoader
@@ -31,24 +28,20 @@ print(env.get_template('base.html'))
 print()
 
 
-
-
-
-
 import recolor.fibo
 
 recolor.fibo.fib(1000)
 print()
 
 
-
-
 import cherrypy
 
+
 class HelloWorld(object):
-  @cherrypy.expose()
-  def index(self):
-    return "Hello World!"
+
+    @cherrypy.expose()
+    def index(self):
+        return "Hello World!"
 
 if __name__ == '__main__':
-  cherrypy.quickstart(HelloWorld())
+    cherrypy.quickstart(HelloWorld())

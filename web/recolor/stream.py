@@ -6,77 +6,80 @@ import subprocess
 
 
 class AsynchronousFileReader(threading.Thread):
-  def __init__(self, fd):
-    assert callable(fd.readline)
-    threading.Thread.__init__(self)
-    self._fd = fd
-    self.queue = queue.Queue()
 
-  def __iter__(self):
-    self.start()
-    while True:
-      message = self.queue.get(block=True)
-      if message:
-        yield message
-      else:
-        break
+    def __init__(self, fd):
+        assert callable(fd.readline)
+        threading.Thread.__init__(self)
+        self._fd = fd
+        self.queue = queue.Queue()
 
-  def run(self):
-    while True:
-      chunk = self._fd.readline()
-      if not chunk:
-        self.queue.put('')
-        break
-      self.queue.put('{} {}'.format(str(threading.current_thread()), chunk))
+    def __iter__(self):
+        self.start()
+        while True:
+            message = self.queue.get(block=True)
+            if message:
+                yield message
+            else:
+                break
+
+    def run(self):
+        while True:
+            chunk = self._fd.readline()
+            if not chunk:
+                self.queue.put('')
+                break
+            self.queue.put(
+                '{} {}'.format(str(threading.current_thread()), chunk))
 
 
 class Stream(object):
-  @cherrypy.expose()
-  def stdout(self):
-    proc = subprocess.Popen([
-      'utils/bin/dummy'
-    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    stdout_reader = AsynchronousFileReader(proc.stdout)
+    @cherrypy.expose()
+    def stdout(self):
+        proc = subprocess.Popen([
+            'utils/bin/dummy'
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    def content(reader):
-      for line in reader:
-        chunk = '{thread} {session} {message}'.format(
-          thread=str(threading.current_thread()),
-          session=cherrypy.session.id,
-          message=line
-        )
+        stdout_reader = AsynchronousFileReader(proc.stdout)
 
-        encoded = base64.b64encode(chunk.encode())
-        yield 'data: ' + encoded.decode() + '\n\n'
+        def content(reader):
+            for line in reader:
+                chunk = '{thread} {session} {message}'.format(
+                    thread=str(threading.current_thread()),
+                    session=cherrypy.session.id,
+                    message=line
+                )
 
-    cherrypy.response.headers['Content-Type'] = 'text/event-stream'
-    cherrypy.response.headers['Cache-Control'] = 'no-cache'
-    return content(stdout_reader)
+                encoded = base64.b64encode(chunk.encode())
+                yield 'data: ' + encoded.decode() + '\n\n'
 
-  stdout._cp_config = {'response.stream': True}
+        cherrypy.response.headers['Content-Type'] = 'text/event-stream'
+        cherrypy.response.headers['Cache-Control'] = 'no-cache'
+        return content(stdout_reader)
 
-  @cherrypy.expose()
-  def stderr(self):
-    proc = subprocess.Popen([
-      'utils/bin/dummy'
-    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout._cp_config = {'response.stream': True}
 
-    stderr_reader = AsynchronousFileReader(proc.stderr)
+    @cherrypy.expose()
+    def stderr(self):
+        proc = subprocess.Popen([
+            'utils/bin/dummy'
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    def content(reader):
-      for line in reader:
-        chunk = '{thread} {session} {message}'.format(
-          thread=str(threading.current_thread()),
-          session=cherrypy.session.id,
-          message=line
-        )
+        stderr_reader = AsynchronousFileReader(proc.stderr)
 
-        encoded = base64.b64encode(chunk.encode())
-        yield 'data: ' + encoded.decode() + '\n\n'
+        def content(reader):
+            for line in reader:
+                chunk = '{thread} {session} {message}'.format(
+                    thread=str(threading.current_thread()),
+                    session=cherrypy.session.id,
+                    message=line
+                )
 
-    cherrypy.response.headers['Content-Type'] = 'text/event-stream'
-    cherrypy.response.headers['Cache-Control'] = 'no-cache'
-    return content(stderr_reader)
+                encoded = base64.b64encode(chunk.encode())
+                yield 'data: ' + encoded.decode() + '\n\n'
 
-  stderr._cp_config = {'response.stream': True}
+        cherrypy.response.headers['Content-Type'] = 'text/event-stream'
+        cherrypy.response.headers['Cache-Control'] = 'no-cache'
+        return content(stderr_reader)
+
+    stderr._cp_config = {'response.stream': True}

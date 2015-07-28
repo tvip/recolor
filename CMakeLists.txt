@@ -5,7 +5,7 @@ project( recolor VERSION 0.1 )
 option( ${PROJECT_NAME}_BUILD_TOOL "build command line tool" ON )
 option( ${PROJECT_NAME}_BUILD_TESTS "enable unit testing" ON )
 option( ${PROJECT_NAME}_BUILD_APP "build Mac OS app bundle" ${APPLE} )
-option( ${PROJECT_NAME}_BUILD_SHARED "build shared lib" ON )
+option( ${PROJECT_NAME}_BUILD_SHARED "build shared lib" OFF )
 option( ${PROJECT_NAME}_BUILD_STATIC "build static lib" ON )
 
 set(ConfigPackageLocation lib/cmake/)
