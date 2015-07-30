@@ -11,12 +11,12 @@ class AsynchronousFileReader(threading.Thread):
         assert callable(fd.readline)
         threading.Thread.__init__(self)
         self._fd = fd
-        self.queue = queue.Queue()
+        self.log = queue.Queue()
 
     def __iter__(self):
         self.start()
         while True:
-            message = self.queue.get(block=True)
+            message = self.log.get(block=True)
             if message:
                 yield message
             else:
@@ -26,9 +26,9 @@ class AsynchronousFileReader(threading.Thread):
         while True:
             chunk = self._fd.readline()
             if not chunk:
-                self.queue.put('')
+                self.log.put('')
                 break
-            self.queue.put(
+            self.log.put(
                 '{} {}'.format(str(threading.current_thread()), chunk))
 
 

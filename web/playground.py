@@ -76,11 +76,11 @@ def f(q):
 if __name__ == '__main__':
   start_time = time.time()
 
-  queue = multiprocessing.Queue()
-  p = multiprocessing.Process(target=f, args=(queue,))
+  log = multiprocessing.Queue()
+  p = multiprocessing.Process(target=f, args=(log,))
   p.start()
   # p.join()  # this deadlocks
-  obj = queue.get()
+  obj = log.get()
   
   print(obj)
 
@@ -108,12 +108,12 @@ class AsynchronousFileReader(threading.Thread):
         assert callable(fd.readline)
         threading.Thread.__init__(self)
         self._fd = fd
-        self.queue = queue.Queue()
+        self.log = queue.Queue()
 
     def __iter__(self):
         self.start()
         while True:
-            message = self.queue.get(block=True)
+            message = self.log.get(block=True)
             if message:
                 yield message
             else:
@@ -123,9 +123,9 @@ class AsynchronousFileReader(threading.Thread):
         while True:
             chunk = self._fd.readline()
             if not chunk:
-                self.queue.put('')
+                self.log.put('')
                 break
-            self.queue.put('{} {}'.format(str(threading.current_thread()), chunk))
+            self.log.put('{} {}'.format(str(threading.current_thread()), chunk))
 
 
 if __name__ == '__main__':
