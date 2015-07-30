@@ -15,20 +15,39 @@ class AsynchronousFileReader(threading.Thread):
         self.event = threading.Condition()
 
     def __iter__(self):
-        pass
+        self.event.acquire()
+
+        i = 0
+        while i < len(self.log):
+            yield self.log[i]
+            i = i + 1
+
+        self.event.release()
+
+        while True:
+            self.event.acquire()
+
+            if i > 0 and not self.log[i - 1]:
+                self.event.release()
+                break
+
+            self.event.wait()
+            yield self.log[i]
+            self.event.release()
+            i = i + 1
 
     def run(self):
+        self.event.acquire()
         while True:
             chunk = self._fd.readline()
-            self.event.acquire()
-            
             self.log.append(chunk)
-
-            self.event.notify_all()
-            self.event.release()
+            print(type(chunk), len(chunk))
 
             if not chunk:
                 break
+
+        self.event.notify_all()
+        self.event.release()
 
 
 class ProcLogger(threading.Thread):
@@ -46,20 +65,14 @@ class ProcLogger(threading.Thread):
 
         self._stdout_reader = AsynchronousFileReader(self._proc.stdout)
         self._stderr_reader = AsynchronousFileReader(self._proc.stderr)
-        
-        self._stdout_reader.start()
-        self._stderr_reader.start()
-        
-        self._stdout_reader.join()
-        self._stderr_reader.join()
-        
-        for line in self._stdout_reader.log:
-            print(line)
-            
-        for line in self._stderr_reader.log:
-            print(line)
 
     def run(self):
+        self._stdout_reader.start()
+        self._stderr_reader.start()
+
+        self._stdout_reader.join()
+        self._stderr_reader.join()
+
         self._proc.stdout.close()
         self._proc.stderr.close()
 
@@ -72,6 +85,7 @@ def dummy():
 if __name__ == '__main__':
     if None:
         print(__name__)
+
     '''
     l = [i for i in range(10)]
     c = threading.Condition()
@@ -87,8 +101,13 @@ if __name__ == '__main__':
     p = ProcLogger()
     p.start()
     p.join()
-    
-        
+
+    for msg in p._stdout_reader:
+        print(msg)
+
+    for msg in p._stderr_reader:
+        print(msg)
+
     '''
     proc = subprocess.Popen([
         'utils/bin/dummy'
