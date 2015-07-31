@@ -1,6 +1,6 @@
 import subprocess
 import threading
-import datetime
+# import datetime
 import time
 
 
@@ -10,7 +10,6 @@ class AsynchronousFileReader(threading.Thread):
         assert callable(fd.readline)
         threading.Thread.__init__(self)
         self._fd = fd
-        self._end = False
         self.log = list()
         self.event = threading.Condition()
 
@@ -76,10 +75,10 @@ class ProcLogger(threading.Thread):
     def run(self):
         for thread in self.threads:
             thread.start()
-        
+
         for thread in self.threads:
             thread.join()
-        
+
         self._proc.stdout.close()
         self._proc.stderr.close()
 
