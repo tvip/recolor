@@ -26,28 +26,38 @@ class AsynchronousFileReader(threading.Thread):
 
         while True:
             self.event.acquire()
+            self.event.wait()
 
-            if i > 0 and not self.log[i - 1]:
-                self.event.release()
+            end = False
+            while i < len(self.log):
+                message = self.log[i]
+
+                if message:
+                    yield self.log[i]
+                else:
+                    end = True
+
+                i = i + 1
+
+            self.event.release()
+
+            if end:
                 break
 
-            self.event.wait()
-            yield self.log[i]
-            self.event.release()
-            i = i + 1
-
     def run(self):
-        self.event.acquire()
         while True:
             chunk = self._fd.readline()
+
+            self.event.acquire()
+
             self.log.append(chunk)
             print(type(chunk), len(chunk))
 
+            self.event.notify_all()
+            self.event.release()
+
             if not chunk:
                 break
-
-        self.event.notify_all()
-        self.event.release()
 
 
 class ProcLogger(threading.Thread):
@@ -98,15 +108,20 @@ if __name__ == '__main__':
             i = i + 1
     
     '''
+
+    def print_stream(reader):
+        for msg in reader:
+            print(msg)
+
     p = ProcLogger()
     p.start()
+
+    threading.Thread(target=print_stream, args=(p._stdout_reader,)).start()
+    threading.Thread(target=print_stream, args=(p._stdout_reader,)).start()
+    threading.Thread(target=print_stream, args=(p._stdout_reader,)).start()
+    threading.Thread(target=print_stream, args=(p._stderr_reader,)).start()
+
     p.join()
-
-    for msg in p._stdout_reader:
-        print(msg)
-
-    for msg in p._stderr_reader:
-        print(msg)
 
     '''
     proc = subprocess.Popen([
