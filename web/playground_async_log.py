@@ -16,7 +16,7 @@ class AsynchronousFileReader(threading.Thread):
 
     def __iter__(self):
         self.event.acquire()
-        end = False
+        message = True
 
         i = 0
         while i < len(self.log):
@@ -24,14 +24,12 @@ class AsynchronousFileReader(threading.Thread):
 
             if message:
                 yield self.log[i]
-            else:
-                end = True
 
             i = i + 1
 
         self.event.release()
 
-        while not end:
+        while message:
             self.event.acquire()
             self.event.wait()
 
@@ -40,8 +38,6 @@ class AsynchronousFileReader(threading.Thread):
 
                 if message:
                     yield self.log[i]
-                else:
-                    end = True
 
                 i = i + 1
 
@@ -65,10 +61,6 @@ class AsynchronousFileReader(threading.Thread):
 
 class ProcLogger(threading.Thread):
 
-    def _output(self, reader):
-        for msg in reader:
-            print(datetime.datetime.now(), msg)
-
     def __init__(self):
         threading.Thread.__init__(self)
 
@@ -76,16 +68,18 @@ class ProcLogger(threading.Thread):
             'utils/bin/dummy'
         ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        self._stdout_reader = AsynchronousFileReader(self._proc.stdout)
-        self._stderr_reader = AsynchronousFileReader(self._proc.stderr)
+        self.threads = (
+            AsynchronousFileReader(self._proc.stdout),
+            AsynchronousFileReader(self._proc.stderr)
+        )
 
     def run(self):
-        self._stdout_reader.start()
-        self._stderr_reader.start()
-
-        self._stdout_reader.join()
-        self._stderr_reader.join()
-
+        for thread in self.threads:
+            thread.start()
+        
+        for thread in self.threads:
+            thread.join()
+        
         self._proc.stdout.close()
         self._proc.stderr.close()
 
@@ -119,11 +113,11 @@ if __name__ == '__main__':
     p = ProcLogger()
     p.start()
 
-    threading.Thread(target=print_stream, args=(p._stdout_reader,)).start()
-    threading.Thread(target=print_stream, args=(p._stdout_reader,)).start()
-    time.sleep(5)
-    threading.Thread(target=print_stream, args=(p._stdout_reader,)).start()
-    threading.Thread(target=print_stream, args=(p._stderr_reader,)).start()
+    threading.Thread(target=print_stream, args=(p.threads[0],)).start()
+    threading.Thread(target=print_stream, args=(p.threads[0],)).start()
+    time.sleep(6)
+    threading.Thread(target=print_stream, args=(p.threads[0],)).start()
+    threading.Thread(target=print_stream, args=(p.threads[1],)).start()
 
     p.join()
 
