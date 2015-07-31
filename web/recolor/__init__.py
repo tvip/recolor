@@ -26,6 +26,10 @@ class Recolor(object):
     def __init__(self):
         object.__init__(self)
         self.clean_tmp_dir()
+    
+    @cherrypy.expose
+    def index(self):
+        return 'abc'
 
     @cherrypy.expose
     def thing(self):
@@ -80,12 +84,17 @@ class Recolor(object):
         # proc.stdout.close()
         # proc.stderr.close()
         
-        # _logger = ProcLogger(['utils/bin/dummy'])
+        logger = ProcLogger(['utils/bin/dummy'])
+        #logger.start()
+        
+        cherrypy.session['dummy_logger'] = logger
+        cherrypy.session['dummy_logger'].start()
+        
         _logger.start()
         
         cherrypy.response.headers['Content-Type'] = 'text/event-stream'
         cherrypy.response.headers['Cache-Control'] = 'no-cache'
-        return 'data: oki\n\n'
+        return 'data: {} oki\n\n'.format(cherrypy.session.id)
 
     # thing._cp_config = {'response.stream': True}
     '''
@@ -117,32 +126,25 @@ class Recolor(object):
         cherrypy.response.headers['Cache-Control'] = 'no-cache'
         return content()
     '''
+    
+    def _stream(self, content):
+        for msg in content:
+            encoded = base64.b64encode('{} '.format(cherrypy.session.id).encode() + msg)
+            yield 'data: ' + encoded.decode() + '\n\n'
 
     @cherrypy.expose()
     def stdout(self):
-        
-        def content():
-            for msg in _logger.threads[0]:
-                encoded = base64.b64encode(msg)
-                yield 'data: ' + encoded.decode() + '\n\n'
-
         cherrypy.response.headers['Content-Type'] = 'text/event-stream'
         cherrypy.response.headers['Cache-Control'] = 'no-cache'
-        return content()
+        return self._stream(_logger.threads[0])
     
     stdout._cp_config = {'response.stream': True}
 
     @cherrypy.expose()
     def stderr(self):
-
-        def content():
-            for msg in _logger.threads[1]:
-                encoded = base64.b64encode(msg)
-                yield 'data: ' + encoded.decode() + '\n\n'
-
         cherrypy.response.headers['Content-Type'] = 'text/event-stream'
         cherrypy.response.headers['Cache-Control'] = 'no-cache'
-        return content()
+        return self._stream(_logger.threads[0])
 
     stderr._cp_config = {'response.stream': True}
 
