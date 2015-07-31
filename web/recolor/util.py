@@ -1,7 +1,7 @@
 import os
 import errno
 import threading
-import queue
+import subprocess
 import shutil
 import re
 
@@ -30,24 +30,76 @@ def purge(directory, pattern):
 
 class AsynchronousFileReader(threading.Thread):
 
-    def __init__(self, fd, eventQueue):
+    def __init__(self, fd):
         assert callable(fd.readline)
         threading.Thread.__init__(self)
         self._fd = fd
-        self._eventQueue = eventQueue
+        self.log = list()
+        self.event = threading.Condition()
 
     def __iter__(self):
-        while True:
-            message = self._eventQueue.get(block=True)
+        self.event.acquire()
+        message = True
+
+        i = 0
+        while i < len(self.log):
+            message = self.log[i]
+
             if message:
-                yield message
-            else:
-                break
+                yield self.log[i]
+
+            i = i + 1
+
+        self.event.release()
+
+        while message:
+            self.event.acquire()
+            self.event.wait()
+
+            while i < len(self.log):
+                message = self.log[i]
+
+                if message:
+                    yield self.log[i]
+
+                i = i + 1
+
+            self.event.release()
 
     def run(self):
         while True:
             chunk = self._fd.readline()
+
+            self.event.acquire()
+
+            self.log.append(chunk)
+            print(type(chunk), len(chunk))
+
+            self.event.notify_all()
+            self.event.release()
+
             if not chunk:
                 break
-            self._eventQueue.put(chunk)
-        self._eventQueue.put(None)
+
+
+class ProcLogger(threading.Thread):
+
+    def __init__(self, args):
+        threading.Thread.__init__(self)
+
+        self._proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        self.threads = (
+            AsynchronousFileReader(self._proc.stdout),
+            AsynchronousFileReader(self._proc.stderr)
+        )
+
+    def run(self):
+        for thread in self.threads:
+            thread.start()
+
+        for thread in self.threads:
+            thread.join()
+
+        self._proc.stdout.close()
+        self._proc.stderr.close()

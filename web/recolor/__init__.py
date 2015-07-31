@@ -7,6 +7,7 @@ import base64
 import queue
 import random
 import threading
+from recolor.util import ProcLogger
 
 
 class Pocessing:
@@ -18,7 +19,7 @@ class Pocessing:
 
 
 _proc_session = {}
-
+_logger = ProcLogger(['utils/bin/dummy'])
 
 class Recolor(object):
 
@@ -28,6 +29,7 @@ class Recolor(object):
 
     @cherrypy.expose
     def thing(self):
+        '''
         orig_color = 'orig'
         res_color = 'green'
         cherrypy.request.app.log('SESSION: ' + cherrypy.session.id)
@@ -40,7 +42,7 @@ class Recolor(object):
                 p.proc.terminate()
                 # proc.stdout.close()
                 # proc.stderr.close()
-
+        
         proc = subprocess.Popen([
             'utils/bin/recolor-tool',
             os.path.join('test-data', res_color, 'matrix.txt'),
@@ -49,6 +51,7 @@ class Recolor(object):
             '-xpath', '//image[@file]', '-xattr', 'file',
             '-xml', os.path.join('test-data', orig_color, 'tvip_light/resources.xml')
         ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
         # proc = subprocess.Popen(['utils/bin/dummy'])  # ,
         # stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -62,6 +65,7 @@ class Recolor(object):
 
         stderr_reader = util.AsynchronousFileReader(proc.stderr, p.stderr_queue)
         stderr_reader.start()
+        '''
 
         # stderr_reader.join()
         # proc.stderr.close()
@@ -72,15 +76,19 @@ class Recolor(object):
         proc.stdout.close()
     '''
         # proc.communicate()
-        # cherrypy.response.headers['Content-Type'] = 'text/event-stream'
-        # cherrypy.response.headers['Cache-Control'] = 'no-cache'
         # proc.wait()
         # proc.stdout.close()
         # proc.stderr.close()
+        
+        # _logger = ProcLogger(['utils/bin/dummy'])
+        _logger.start()
+        
+        cherrypy.response.headers['Content-Type'] = 'text/event-stream'
+        cherrypy.response.headers['Cache-Control'] = 'no-cache'
         return 'data: oki\n\n'
 
     # thing._cp_config = {'response.stream': True}
-
+    '''
     @cherrypy.expose()
     def stdout(self):
 
@@ -108,26 +116,29 @@ class Recolor(object):
         cherrypy.response.headers['Content-Type'] = 'text/event-stream'
         cherrypy.response.headers['Cache-Control'] = 'no-cache'
         return content()
+    '''
 
+    @cherrypy.expose()
+    def stdout(self):
+        
+        def content():
+            for msg in _logger.threads[0]:
+                encoded = base64.b64encode(msg)
+                yield 'data: ' + encoded.decode() + '\n\n'
+
+        cherrypy.response.headers['Content-Type'] = 'text/event-stream'
+        cherrypy.response.headers['Cache-Control'] = 'no-cache'
+        return content()
+    
     stdout._cp_config = {'response.stream': True}
 
     @cherrypy.expose()
     def stderr(self):
-        '''
-        def content():
-          if 'stderr_reader' in cherrypy.session:
-            stderr_reader = cherrypy.session['stderr_reader']
-            for msg in stderr_reader:
-              encoded = base64.b64encode(msg.decode().rstrip('\r\n').encode())
-              yield 'data: ' + encoded.decode() + '\n\n'
-        '''
 
         def content():
-            i = 0
-            while True:
-                i = i + 1
-                yield 'data: stderr' + str(i) + '\n\n'
-                time.sleep(.2)
+            for msg in _logger.threads[1]:
+                encoded = base64.b64encode(msg)
+                yield 'data: ' + encoded.decode() + '\n\n'
 
         cherrypy.response.headers['Content-Type'] = 'text/event-stream'
         cherrypy.response.headers['Cache-Control'] = 'no-cache'

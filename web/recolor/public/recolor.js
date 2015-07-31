@@ -33,6 +33,7 @@ function redirect_stream(callback, url) {
 
     source.addEventListener('message', function(e) {
       eval(callback + '(window.atob(e.data))')
+    	//console.error(e.data)
     }, false)
 
     source.addEventListener('open', function(e) {
