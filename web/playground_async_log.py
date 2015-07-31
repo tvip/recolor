@@ -16,19 +16,25 @@ class AsynchronousFileReader(threading.Thread):
 
     def __iter__(self):
         self.event.acquire()
+        end = False
 
         i = 0
         while i < len(self.log):
-            yield self.log[i]
+            message = self.log[i]
+
+            if message:
+                yield self.log[i]
+            else:
+                end = True
+
             i = i + 1
 
         self.event.release()
 
-        while True:
+        while not end:
             self.event.acquire()
             self.event.wait()
 
-            end = False
             while i < len(self.log):
                 message = self.log[i]
 
@@ -40,9 +46,6 @@ class AsynchronousFileReader(threading.Thread):
                 i = i + 1
 
             self.event.release()
-
-            if end:
-                break
 
     def run(self):
         while True:
@@ -118,6 +121,7 @@ if __name__ == '__main__':
 
     threading.Thread(target=print_stream, args=(p._stdout_reader,)).start()
     threading.Thread(target=print_stream, args=(p._stdout_reader,)).start()
+    time.sleep(5)
     threading.Thread(target=print_stream, args=(p._stdout_reader,)).start()
     threading.Thread(target=print_stream, args=(p._stderr_reader,)).start()
 
