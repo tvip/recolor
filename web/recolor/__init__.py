@@ -21,15 +21,89 @@ class Pocessing:
 _proc_session = {}
 _logger = ProcLogger(['utils/bin/dummy'])
 
+
+class Image(object):
+    @cherrypy.expose
+    def index(self, image):
+        cherrypy.response.headers['Content-Type'] = 'text/event-stream'
+        cherrypy.response.headers['Cache-Control'] = 'no-cache'
+        return 'data: ' + image + '\n\n'
+
+    index._cp_config = {'response.stream': True}
+
+
+def _images() -> map:
+    try:
+        images = cherrypy.session['images']
+    except:
+        images = {}
+        cherrypy.session['images'] = images
+    finally:
+        return images
+
+
+def _stream(content):
+    for msg in content:
+        encoded = base64.b64encode('{} '.format(cherrypy.session.id).encode() + msg.decode().rstrip().encode())
+        yield 'data: ' + encoded.decode() + '\n\n'
+
+
+class Stdout(object):
+
+    @cherrypy.expose
+    def index(self, image):
+        def content():
+            logger = _images()[image]
+            return _stream(logger.threads[0])
+
+        cherrypy.response.headers['Content-Type'] = 'text/event-stream'
+        cherrypy.response.headers['Cache-Control'] = 'no-cache'
+        return content()
+
+    index._cp_config = {'response.stream': True}
+
+
+class Stderr(object):
+
+    @cherrypy.expose
+    def index(self, image):
+        def content():
+            logger = _images()[image]
+            return _stream(logger.threads[1])
+
+        cherrypy.response.headers['Content-Type'] = 'text/event-stream'
+        cherrypy.response.headers['Cache-Control'] = 'no-cache'
+        return content()
+
+    index._cp_config = {'response.stream': True}
+
+
 class Recolor(object):
 
     def __init__(self):
         object.__init__(self)
         self.clean_tmp_dir()
-    
-    @cherrypy.expose
-    def index(self):
-        return 'abc'
+        self.images = Image()
+        self._stdout = Stdout()
+        self._stderr = Stderr()
+
+    def _cp_dispatch(self, vpath):
+        print('DISPATCH', type(vpath), vpath)
+
+        if len(vpath) == 1:
+            cherrypy.request.params['image'] = vpath.pop(0)
+            return self.images
+
+        if len(vpath) == 2:
+            stream = vpath.pop(0)
+            if stream == 'stdout':
+                cherrypy.request.params['image'] = vpath.pop(0)
+                return self._stdout
+            if stream == 'stderr':
+                cherrypy.request.params['image'] = vpath.pop(0)
+                return self._stderr
+
+        return vpath
 
     @cherrypy.expose
     def thing(self):
@@ -126,12 +200,8 @@ class Recolor(object):
         cherrypy.response.headers['Cache-Control'] = 'no-cache'
         return content()
     '''
-    
-    def _stream(self, content):
-        for msg in content:
-            encoded = base64.b64encode('{} '.format(cherrypy.session.id).encode() + msg)
-            yield 'data: ' + encoded.decode() + '\n\n'
 
+    '''
     @cherrypy.expose()
     def stdout(self):
         cherrypy.response.headers['Content-Type'] = 'text/event-stream'
@@ -147,15 +217,7 @@ class Recolor(object):
         return self._stream(_logger.threads[0])
 
     stderr._cp_config = {'response.stream': True}
-
-    def images(self) -> set:
-        try:
-            images = cherrypy.session['images']
-        except:
-            images = set()
-            cherrypy.session['images'] = images
-        finally:
-            return images
+    '''
 
     @cherrypy.expose()
     def upload(self):
@@ -172,8 +234,8 @@ class Recolor(object):
         # fname = 'img' + os.path.splitext(fname)[1]
         # print('type', type(cherrypy.session['images']))
         # print(dir(cherrypy.session))
-        # print('SESSION', self.images())
-        self.images().add(fname)
+        # print('SESSION', _images())
+        _images()[fname] = None
 
         path = os.path.join('tmp', cherrypy.session.id, 'orig', fname)
         with open(path, 'wb') as file:
@@ -189,6 +251,20 @@ class Recolor(object):
         with open(matrix_path, 'w') as file:
             file.write(matrix)
 
+        for fname in _images():
+            '''
+            logger = ProcLogger(['utils/bin/dummy'])
+            '''
+            logger = ProcLogger([
+                'utils/bin/recolor-tool',
+                os.path.join('tmp', cherrypy.session.id, 'matrix.txt'),
+                '-img',
+                os.path.join('tmp', cherrypy.session.id, 'orig', fname),
+                os.path.join('tmp', cherrypy.session.id, 'res', fname)
+            ])
+            logger.start()
+            _images()[fname] = logger
+        '''
         fname = 'img.png'
 
         proc = subprocess.Popen([
@@ -204,9 +280,11 @@ class Recolor(object):
         with open(os.path.join('tmp', cherrypy.session.id, 'res', fname), 'rb') as res_file:
             # print(str(type(res_file)))
             encoded = base64.b64encode(res_file.read())
+        '''
 
         # print(encoded)
-        return encoded
+        # return encoded
+        return 'ok'
 
     def clean_tmp_dir(self):
         cherrypy.log('Cleanup tmp dir')
