@@ -148,6 +148,15 @@ class Recolor(object):
 
     stderr._cp_config = {'response.stream': True}
 
+    def images(self) -> set:
+        try:
+            images = cherrypy.session['images']
+        except:
+            images = set()
+            cherrypy.session['images'] = images
+        finally:
+            return images
+
     @cherrypy.expose()
     def upload(self):
         cherrypy.request.app.log('UPLOAD {}'.format(str(threading.current_thread())))
@@ -160,7 +169,11 @@ class Recolor(object):
 
         fname = cherrypy.request.headers['X-FILE-NAME']
         cherrypy.request.app.log('data type: {} len: {} name: {}'.format(type(data), len(data), fname))
-        fname = 'img' + os.path.splitext(fname)[1]
+        # fname = 'img' + os.path.splitext(fname)[1]
+        # print('type', type(cherrypy.session['images']))
+        # print(dir(cherrypy.session))
+        # print('SESSION', self.images())
+        self.images().add(fname)
 
         path = os.path.join('tmp', cherrypy.session.id, 'orig', fname)
         with open(path, 'wb') as file:
