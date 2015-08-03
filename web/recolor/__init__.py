@@ -38,9 +38,9 @@ def _stream(content):
         yield 'data: ' + encoded.decode() + '\n\n'
 
 
-class Image(object):
+class ImageBase64(object):
     @cherrypy.expose
-    def index(self, image):
+    def index(self, image, timestamp=0):
         logger = _images()[image]
         print(logger._proc)
 
@@ -48,14 +48,27 @@ class Image(object):
             logger._proc.communicate()
 
         with open(os.path.join('tmp', cherrypy.session.id, 'res', image), 'rb') as res_file:
-            # print(str(type(res_file)))
             encoded = base64.b64encode(res_file.read())
-
-        #cherrypy.response.headers['Content-Type'] = 'text/event-stream'
-        #cherrypy.response.headers['Cache-Control'] = 'no-cache'
+            
+        cherrypy.response.headers['Cache-Control'] = 'no-cache'
         return encoded
 
-    #index._cp_config = {'response.stream': True}
+
+class Image(object):
+    @cherrypy.expose
+    def index(self, image, timestamp=0):
+        logger = _images()[image]
+        print(logger._proc)
+
+        if logger._proc.poll() is None:
+            logger._proc.communicate()
+        
+        with open(os.path.join('tmp', cherrypy.session.id, 'res', image), 'rb') as res_file:
+            data = res_file.read()
+        
+        cherrypy.response.headers['Content-Type'] = "image/png"
+        cherrypy.response.headers['Cache-Control'] = 'no-cache'
+        return data
 
 
 class Stdout(object):
@@ -94,18 +107,21 @@ class Recolor(object):
         object.__init__(self)
         self.clean_tmp_dir()
         self.images = Image()
+        self.images_base64 = ImageBase64()
         self._stdout = Stdout()
         self._stderr = Stderr()
 
     def _cp_dispatch(self, vpath):
         print('DISPATCH', type(vpath), vpath)
 
-        if len(vpath) == 1:
-            cherrypy.request.params['image'] = vpath.pop(0)
-            return self.images
-
         if len(vpath) == 2:
             stream = vpath.pop(0)
+            if stream == 'image':
+                cherrypy.request.params['image'] = vpath.pop(0)
+                return self.images
+            if stream == 'base64':
+                cherrypy.request.params['image'] = vpath.pop(0)
+                return self.images_base64
             if stream == 'stdout':
                 cherrypy.request.params['image'] = vpath.pop(0)
                 return self._stdout
