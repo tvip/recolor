@@ -48,6 +48,8 @@ function dragndrop() {
         return false
       }
 
+      new Image(file)
+
       // Создаем запрос
       var xhr = new XMLHttpRequest()
       xhr.upload.addEventListener('progress', uploadProgress, false)

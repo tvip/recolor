@@ -88,6 +88,7 @@ class ProcLogger(threading.Thread):
         threading.Thread.__init__(self)
 
         self._proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self._onfinish = None
 
         self.threads = (
             AsynchronousFileReader(self._proc.stdout),
@@ -103,3 +104,12 @@ class ProcLogger(threading.Thread):
 
         self._proc.stdout.close()
         self._proc.stderr.close()
+
+        if self._onfinish is not None:
+            self._onfinish()
+
+    def onFinish(self, on_finish):
+        # FIXME: по-идее здесь нужен lock
+        self._onfinish = on_finish
+        if self._proc.poll() is not None:  # Нет returncode, значит ещё работает
+            on_finish()

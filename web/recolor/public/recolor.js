@@ -1,3 +1,35 @@
+var images = new Array()
+function Image(file) {
+  var URL = window.URL || window.webkitURL
+  var name = file.name
+  this.name = name
+
+  if (!images[name]) {
+    var table = document.getElementById("images_table")
+    var row = table.insertRow(0)
+    var cell1 = row.insertCell(0)
+    var cell2 = row.insertCell(1)
+    var img1 = document.createElement("img")
+    img1.id = 'orig_' + name
+    var img2 = document.createElement("img")
+    img2.id = 'res_' + name
+    img2.src = ''
+    cell1.appendChild(img1)
+    cell2.appendChild(img2)
+  }
+
+  var img1 = document.getElementById('orig_' + name)
+  var img1_url = URL.createObjectURL(file)
+  console.log('img1_url ' + img1 + ' ' + img1_url)
+  img1.onload = function() {
+    URL.revokeObjectURL(img1_url);
+  }
+
+  img1.src = img1_url
+
+  images[name] = this
+}
+
 function recolor() {
   console.log('welcome to Recolor')
 
@@ -42,8 +74,33 @@ function recolor() {
       console.log('success')
       console.log(data)
 
-      redirect_stream('console.log', '/recolor/stdout/clock.png')
-      redirect_stream('console.error', '/recolor/stderr/clock.png')
+      for (var fname in images) {
+        console.log('KEY ' + key)
+
+        redirect_stream('console.log', '/recolor/stdout/' + fname)
+        redirect_stream('console.error', '/recolor/stderr/' + fname)
+
+        var xhr = new XMLHttpRequest()
+        xhr.onreadystatechange = function(data) {
+          console.log('Recolor onreadystatechange' + xhr.responseText)
+          var res_img = document.getElementById('res_' + fname)
+          console.log('res_img ' + fname + ' ' + res_img + ' ' + $('#img'))
+          res_img.src = 'data:image/png;base64,' + xhr.responseText
+          if (event.target.readyState == 4) {
+            if (event.target.status == 200) {
+              console.log('RECOLORED')
+              console.log('responseText' + xhr.responseText)
+            }
+            else {
+              console.error('RELORED')
+            }
+          }
+        }
+
+        xhr.open('get', '/recolor/' + fname)
+        xhr.send(null)
+      }
+
     })
   })
 }

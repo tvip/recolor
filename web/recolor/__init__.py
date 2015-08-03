@@ -22,16 +22,6 @@ _proc_session = {}
 _logger = ProcLogger(['utils/bin/dummy'])
 
 
-class Image(object):
-    @cherrypy.expose
-    def index(self, image):
-        cherrypy.response.headers['Content-Type'] = 'text/event-stream'
-        cherrypy.response.headers['Cache-Control'] = 'no-cache'
-        return 'data: ' + image + '\n\n'
-
-    index._cp_config = {'response.stream': True}
-
-
 def _images() -> map:
     try:
         images = cherrypy.session['images']
@@ -46,6 +36,26 @@ def _stream(content):
     for msg in content:
         encoded = base64.b64encode('{} '.format(cherrypy.session.id).encode() + msg.decode().rstrip().encode())
         yield 'data: ' + encoded.decode() + '\n\n'
+
+
+class Image(object):
+    @cherrypy.expose
+    def index(self, image):
+        logger = _images()[image]
+        print(logger._proc)
+
+        if logger._proc.poll() is None:
+            logger._proc.communicate()
+
+        with open(os.path.join('tmp', cherrypy.session.id, 'res', image), 'rb') as res_file:
+            # print(str(type(res_file)))
+            encoded = base64.b64encode(res_file.read())
+
+        #cherrypy.response.headers['Content-Type'] = 'text/event-stream'
+        #cherrypy.response.headers['Cache-Control'] = 'no-cache'
+        return encoded
+
+    #index._cp_config = {'response.stream': True}
 
 
 class Stdout(object):
