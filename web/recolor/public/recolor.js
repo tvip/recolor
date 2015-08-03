@@ -32,7 +32,8 @@ function Image(file) {
 
 function recolor() {
   console.log('welcome to Recolor')
-
+  
+  // TODO: подгружать перекрашенные картинки без нажатия на кнопку 
   $("#matrix_form").submit(function(event) {
 
     /* stop form from submitting normally */
