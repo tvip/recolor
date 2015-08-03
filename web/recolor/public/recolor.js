@@ -30,8 +30,75 @@ function Image(file) {
   images[name] = this
 }
 
+function rgbToHex (r, g, b)
+{  
+    r = Math.round(255*r).toString(16);
+    g = Math.round(255*g).toString(16);
+    b = Math.round(255*b).toString(16);
+    
+    if (r.length == 1) r = '0' + r;
+    if (g.length == 1) g = '0' + g;
+    if (b.length == 1) b = '0' + b;
+    
+    return (r + g + b).toUpperCase();
+}
+
+function matrix_changed() {
+  console.log('matrix changed')
+  
+  var colors_table = document.getElementById('colors_table')
+  while (colors_table.firstChild) {
+    colors_table.removeChild(colors_table.firstChild)
+  }
+  
+  var splitted = $('#matrix').val().split(/[\s]+/)
+  var color = new Array()
+  var row = colors_table.insertRow(0)
+  
+  for ( var i in splitted ) {
+    if (splitted[i].length) {
+      color.push( Number(splitted[i]) )
+    }
+    if (color.length == 3) {
+      console.log('HEX: ' + rgbToHex(color[0], color[1], color[2]))
+      color = new Array()
+      
+      var cell = row.insertCell(0)
+      var div = document.createElement('div')
+      div.className = "color-box"
+      cell.appendChild(div)
+    }
+  }
+}
+
 function recolor() {
   console.log('welcome to Recolor')
+  
+  $('#picker').colpick({
+    layout:'hex',
+    submit:1,
+    onChange:function(hsb,hex,rgb,el,bySetColor) {
+      console.log('onChange')
+      $(el).css('border-color','#'+hex)
+      // Fill the text box just if the color was set using the picker, and not the colpickSetColor function.
+      if(!bySetColor) $(el).val(hex)
+    },
+    onShow:function() {console.log('onShow')},
+    onBeforeShow:function() {console.log('onBeforeShow')},
+    onHide:function() {console.log('onHide')},
+    onSubmit:function() {console.log('onChange')}
+  }).keyup(function(){
+    $(this).colpickSetColor(this.value)
+  })
+  
+  $('.color-box').colpick({
+    //color:'ff8800',
+    onSubmit:function(hsb,hex,rgb,el) {
+      $(el).css('background-color', '#'+hex);
+      $(el).colpickHide();
+    }
+  })
+  .css('background-color', '#ff8800');
   
   // TODO: подгружать перекрашенные картинки без нажатия на кнопку 
   $("#matrix_form").submit(function(event) {

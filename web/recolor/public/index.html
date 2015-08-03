@@ -37,9 +37,12 @@
 
 <table id="images_table" border='1'></table>
 
+<table>
+<tr>
+<td>
 <form id='matrix_form' action='/recolor/matrix' method='post'>
   <p><b>Введите матрицу преобразования:</b></p>
-  <p><textarea rows='10' cols='45' id='matrix' name='matrix'>
+  <p><textarea rows='10' cols='45' id='matrix' name='matrix' onchange=matrix_changed()>
 
     0    0    0        0    0    0
     0    0    1        0    0    1
@@ -53,6 +56,17 @@
   </textarea></p>
   <p><input type='submit' value='Применить'></p>
 </form>
+</td>
+<td>
+  <table id="colors_table" border='1'>
+  <tr>
+  <td> <div class="color-box"></div> </td>
+  <td><input type="text" id="picker2"></input></td>
+  </tr>
+  </table>
+</td>
+</tr>
+</table>
 
 <!---
 <canvas height='320' width='480' id='color_map'>Canvas не поддерживается браузером</canvas>
