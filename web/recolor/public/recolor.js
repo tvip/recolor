@@ -94,15 +94,6 @@ function matrix_changed() {
 function recolor() {
   console.log('welcome to Recolor')
   
-  $('.color-box').colpick({
-    //color:'ff8800',
-    onSubmit:function(hsb,hex,rgb,el) {
-      $(el).css('background-color', '#'+hex);
-      $(el).colpickHide();
-    }
-  })
-  .css('background-color', '#ff8800');
-  
   // TODO: подгружать перекрашенные картинки без нажатия на кнопку 
   $("#matrix_form").submit(function(event) {
 
@@ -153,6 +144,8 @@ function recolor() {
 
     })
   })
+  
+  matrix_changed()
 }
 
 function dummy_stream() {

@@ -1,4 +1,7 @@
 import cherrypy
+import jinja2
+import jinja2plugin
+
 import subprocess
 from . import util
 import os
@@ -106,10 +109,38 @@ class Recolor(object):
     def __init__(self):
         object.__init__(self)
         self.clean_tmp_dir()
+        
+        package_dir = os.path.dirname(os.path.abspath(__file__))
+        templates_dir = os.path.join(package_dir, 'templates')
+        print('PATH:', templates_dir)
+        
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(templates_dir))
+        jinja2plugin.Jinja2TemplatePlugin(cherrypy.engine, env=env).subscribe()
+        
         self.images = Image()
         self.images_base64 = ImageBase64()
         self._stdout = Stdout()
         self._stderr = Stderr()
+        
+    @cherrypy.expose
+    @cherrypy.tools.template(template='abc.html')
+    def abc(self):
+        return {'msg': 'msg'}
+    
+    @cherrypy.expose
+    @cherrypy.tools.template(template='orc.html')
+    def orc(self):
+        return {'msg': 'Hell Scream'}
+    
+    @cherrypy.expose
+    @cherrypy.tools.template(template='index.html')
+    def index(self):
+        '''
+        TODO: Попробывать сделать свою сессию для каждого таба в браузере
+        http://stackoverflow.com/questions/368653/how-to-differ-sessions-in-browser-tabs
+        '''
+        cherrypy.session.update([])
+        return {'session_id': cherrypy.session.id}
 
     def _cp_dispatch(self, vpath):
         print('DISPATCH', type(vpath), vpath)

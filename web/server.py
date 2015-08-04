@@ -2,6 +2,8 @@
 
 import cherrypy
 import jinja2
+import jinja2plugin
+import jinja2tool
 
 import os
 
@@ -23,7 +25,9 @@ def setup_config(template_fname, result_fname, env):
 
 
 if __name__ == '__main__':
+    cherrypy.tools.template = jinja2tool.Jinja2Tool()
     cherrypy.config.update('server.conf')
+    
     cherrypy.tree.mount(band.Band(), '/band')
 
     cherrypy.tree.mount(
