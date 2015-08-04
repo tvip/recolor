@@ -47,49 +47,52 @@ function matrix_changed() {
   console.log('matrix changed')
   
   var colors_table = document.getElementById('colors_table')
-  while (colors_table.firstChild) {
-    colors_table.removeChild(colors_table.firstChild)
+  while (colors_table.rows.length) {
+    colors_table.deleteRow(0)
   }
   
   var splitted = $('#matrix').val().split(/[\s]+/)
   var color = new Array()
-  var row = colors_table.insertRow(0)
+  var row
   
   for ( var i in splitted ) {
+
     if (splitted[i].length) {
       color.push( Number(splitted[i]) )
     }
     if (color.length == 3) {
-      console.log('HEX: ' + rgbToHex(color[0], color[1], color[2]))
-      color = new Array()
+      if ((row?row.cells.length:0) % 2 == 0) {
+        row = colors_table.insertRow(colors_table.rows.length)
+      }
       
-      var cell = row.insertCell(0)
+      console.log('rows: ' + colors_table.rows.length + '  cells: ' + row.cells.length)
+      var cell = row.insertCell(row.cells.length)
       var div = document.createElement('div')
       div.className = "color-box"
       cell.appendChild(div)
+      
+      var hex = rgbToHex(color[0], color[1], color[2])
+      $(div).css('background-color', '#'+hex)
+      
+      $(div).colpick({
+        color: hex,
+        onChange:function(hsb,hex,rgb,el,bySetColor) {
+          $(el).css('background-color', '#'+hex)
+        },
+        onSubmit:function(hsb,hex,rgb,el) {
+          $(el).css('background-color', '#'+hex)
+          $(el).colpickHide()
+        }
+      })
+      
+      console.log('HEX: ' + rgbToHex(color[0], color[1], color[2]))
+      color = new Array()
     }
   }
 }
 
 function recolor() {
   console.log('welcome to Recolor')
-  
-  $('#picker').colpick({
-    layout:'hex',
-    submit:1,
-    onChange:function(hsb,hex,rgb,el,bySetColor) {
-      console.log('onChange')
-      $(el).css('border-color','#'+hex)
-      // Fill the text box just if the color was set using the picker, and not the colpickSetColor function.
-      if(!bySetColor) $(el).val(hex)
-    },
-    onShow:function() {console.log('onShow')},
-    onBeforeShow:function() {console.log('onBeforeShow')},
-    onHide:function() {console.log('onHide')},
-    onSubmit:function() {console.log('onChange')}
-  }).keyup(function(){
-    $(this).colpickSetColor(this.value)
-  })
   
   $('.color-box').colpick({
     //color:'ff8800',
