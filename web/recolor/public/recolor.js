@@ -30,19 +30,6 @@ function Image(file) {
   images[name] = this
 }
 
-function rgbToHex (r, g, b)
-{  
-    r = Math.round(255*r).toString(16);
-    g = Math.round(255*g).toString(16);
-    b = Math.round(255*b).toString(16);
-    
-    if (r.length == 1) r = '0' + r;
-    if (g.length == 1) g = '0' + g;
-    if (b.length == 1) b = '0' + b;
-    
-    return (r + g + b).toUpperCase();
-}
-
 function matrix_changed() {
   console.log('matrix changed')
   
@@ -58,23 +45,21 @@ function matrix_changed() {
   for ( var i in splitted ) {
 
     if (splitted[i].length) {
-      color.push( Number(splitted[i]) )
+      color.push( Math.round(255 * Number(splitted[i]) ) )
     }
     if (color.length == 3) {
       if ((row?row.cells.length:0) % 2 == 0) {
         row = colors_table.insertRow(colors_table.rows.length)
       }
       
-      console.log('rows: ' + colors_table.rows.length + '  cells: ' + row.cells.length)
+      //console.log('rows: ' + colors_table.rows.length + '  cells: ' + row.cells.length)
       var cell = row.insertCell(row.cells.length)
-      var div = document.createElement('div')
-      div.className = "color-box"
-      cell.appendChild(div)
+      cell.className = 'color-box'
       
-      var hex = rgbToHex(color[0], color[1], color[2])
-      $(div).css('background-color', '#'+hex)
+      var hex = RGBToHex(color[0], color[1], color[2])
+      $(cell).css('background-color', '#'+hex)
       
-      $(div).colpick({
+      $(cell).colpick({
         color: hex,
         onChange:function(hsb,hex,rgb,el,bySetColor) {
           $(el).css('background-color', '#'+hex)
@@ -82,13 +67,33 @@ function matrix_changed() {
         onSubmit:function(hsb,hex,rgb,el) {
           $(el).css('background-color', '#'+hex)
           $(el).colpickHide()
+          matrix_from_colors()
         }
       })
       
-      console.log('HEX: ' + rgbToHex(color[0], color[1], color[2]))
+      //console.log('HEX: ' + RGBToHex(color[0], color[1], color[2]))
       color = new Array()
     }
   }
+}
+
+function matrix_from_colors() {
+  var matrix = ''
+  var colors_table = document.getElementById('colors_table')
+  
+  var row_separator = ''
+  for (var i = 0, row; row = colors_table.rows[i]; i++) {
+    var col_separator = ''
+    matrix += row_separator
+    for (var j = 0, cell; cell = row.cells[j]; j++) {
+      var color = parseCSSColor( $(cell).css('background-color') )
+      matrix += col_separator + sprintf( '%5.3f %5.3f %5.3f', color[0]/255, color[1]/255, color[2]/255 )
+      col_separator = ' '
+    }
+    row_separator = '\n'
+  }
+  
+  $('#matrix').val(matrix)
 }
 
 function recolor() {
