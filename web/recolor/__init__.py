@@ -292,11 +292,14 @@ class Recolor(object):
         # print('type', type(cherrypy.session['images']))
         # print(dir(cherrypy.session))
         # print('SESSION', _images())
+        
         _images()[fname] = None
 
         path = os.path.join('tmp', cherrypy.session.id, 'orig', fname)
         with open(path, 'wb') as file:
             file.write(data)
+        
+        return {}
 
     @cherrypy.expose()
     def matrix(self, matrix):
@@ -341,7 +344,7 @@ class Recolor(object):
 
         # print(encoded)
         # return encoded
-        return 'ok'
+        return 'ok'.encode()
 
     def clean_tmp_dir(self):
         cherrypy.log('Cleanup tmp dir')
