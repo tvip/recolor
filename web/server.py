@@ -2,15 +2,11 @@
 
 import cherrypy
 import jinja2
-import jinja2plugin
 import jinja2tool
 
 import os
 
-import band
-import myapp
 import recolor
-import recolor.stream
 
 
 def setup_config(template_fname, result_fname, env):
@@ -27,31 +23,9 @@ def setup_config(template_fname, result_fname, env):
 if __name__ == '__main__':
     cherrypy.tools.template = jinja2tool.Jinja2Tool()
     cherrypy.config.update('server.conf')
-    
-    cherrypy.tree.mount(band.Band(), '/band')
-
-    cherrypy.tree.mount(
-        myapp.Root(), '/myapp',
-        setup_config(
-            template_fname='myapp.conf',
-            result_fname='var/myapp.conf',
-            env={
-                'staticdir': os.path.abspath(os.getcwd())
-            }
-        ))
 
     cherrypy.tree.mount(
         recolor.Recolor(), '/recolor',
-        setup_config(
-            template_fname='recolor/root.conf',
-            result_fname='var/recolor.conf',
-            env={
-                'staticdir': os.path.join(os.path.abspath(os.getcwd()), 'recolor')
-            }
-        ))
-
-    cherrypy.tree.mount(
-        recolor.stream.Stream(), '/streaming',
         setup_config(
             template_fname='recolor/root.conf',
             result_fname='var/recolor.conf',
