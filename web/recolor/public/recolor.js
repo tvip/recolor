@@ -63,17 +63,45 @@ function matrix_changed() {
         color: hex,
         onChange:function(hsb,hex,rgb,el,bySetColor) {
           $(el).css('background-color', '#'+hex)
+          setNeedsPreview()
         },
         onSubmit:function(hsb,hex,rgb,el) {
           $(el).css('background-color', '#'+hex)
           $(el).colpickHide()
-          matrix_from_colors()
+          $('#matrix').val(matrix_from_colors())
         }
       })
       
       //console.log('HEX: ' + RGBToHex(color[0], color[1], color[2]))
       color = new Array()
     }
+  }
+}
+
+var needs_preview = false
+var lock_preview = false
+function preview() {
+  var matrix = matrix_from_colors()
+  console.log( matrix )
+  recolor( matrix )
+  
+  needs_preview = false
+  lock_preview = true
+  
+  setTimeout(function() {
+    lock_preview = false
+    if (needs_preview) {
+      preview()
+    }
+  }, 500)
+}
+
+function setNeedsPreview() {
+  if (lock_preview) {
+    needs_preview = true
+  }
+  else {
+    preview()
   }
 }
 
@@ -93,10 +121,35 @@ function matrix_from_colors() {
     row_separator = '\n'
   }
   
-  $('#matrix').val(matrix)
+  return matrix
 }
 
-function recolor() {
+function recolor(matrix) {
+  var url = '/recolor/matrix'
+  
+  /* Send the data using post */
+  var posting = $.post( url, { matrix: matrix } )
+
+  /* Alerts the results */
+  posting.done(function( data ) {
+    //$('#img').attr('src', 'data:image/png;base64,' + data)
+    console.log('success')
+    console.log(data)
+
+    for (var fname in images) {
+      console.log('KEY ' + fname)
+
+      //redirect_stream('console.log', '/recolor/stdout/' + fname)
+      //redirect_stream('console.error', '/recolor/stderr/' + fname)
+
+      var res_img = document.getElementById('res_' + fname)
+      res_img.src = '/recolor/image/' + fname + '?timestamp=' + new Date().getTime()
+    }
+
+  })
+}
+
+function recolor_init() {
   console.log('welcome to Recolor')
   
   // TODO: подгружать перекрашенные картинки без нажатия на кнопку 
@@ -106,48 +159,9 @@ function recolor() {
     event.preventDefault()
 
     /* get some values from elements on the page: */
-    var $form = $( this ),
-          url = $form.attr( 'action' )
-
-    /* Send the data using post */
-    var posting = $.post( url, { matrix: $('#matrix').val() } )
-
-    /* Alerts the results */
-    posting.done(function( data ) {
-      //$('#img').attr('src', 'data:image/png;base64,' + data)
-      console.log('success')
-      console.log(data)
-
-      for (var fname in images) {
-        console.log('KEY ' + fname)
-
-        //redirect_stream('console.log', '/recolor/stdout/' + fname)
-        //redirect_stream('console.error', '/recolor/stderr/' + fname)
-
-        var res_img = document.getElementById('res_' + fname)
-        res_img.src = '/recolor/image/' + fname + '?timestamp=' + new Date().getTime()
-        
-        /*var xhr = new XMLHttpRequest()
-        xhr.onreadystatechange = function(data) {
-          //console.log('Recolor onreadystatechange' + xhr.responseText)
-          console.log('res_img ' + fname + ' ' + res_img )
-          res_img.src = 'data:image/png;base64,' + xhr.responseText
-          if (event.target.readyState == 4) {
-            if (event.target.status == 200) {
-              console.log('RECOLORED')
-              console.log('responseText' + xhr.responseText)
-            }
-            else {
-              console.error('RELORED')
-            }
-          }
-        }
-
-        xhr.open('get', '/recolor/base64/' + fname)
-        xhr.send(null)*/
-      }
-
-    })
+    var $form = $( this )
+    
+    recolor( $('#matrix').val() )
   })
   
   matrix_changed()

@@ -10,7 +10,6 @@ import base64
 import queue
 import random
 import threading
-from recolor.util import ProcLogger
 
 
 class Pocessing:
@@ -131,7 +130,6 @@ class Recolor(object):
         return {'session_id': cherrypy.session.id}
 
     def _cp_dispatch(self, vpath):
-        print('DISPATCH', type(vpath), vpath)
 
         if len(vpath) == 2:
             stream = vpath.pop(0)
@@ -182,7 +180,7 @@ class Recolor(object):
             file.write(matrix)
 
         for fname in _images():
-            logger = ProcLogger([
+            logger = util.ProcLogger([
                 'utils/bin/recolor-tool',
                 os.path.join('tmp', cherrypy.session.id, 'matrix.txt'),
                 '-img',

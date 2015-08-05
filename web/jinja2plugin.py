@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import cherrypy
 from cherrypy.process import plugins
 
 __all__ = ['Jinja2TemplatePlugin']

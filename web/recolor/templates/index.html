@@ -24,7 +24,7 @@
   <script>
     $(document).ready(function() {
       //dummy_stream()
-      recolor()
+      recolor_init()
       //redirect_stdout()
       //redirect_stderr()
       dragndrop()
@@ -45,7 +45,7 @@ session_id: {{session_id}}
 <table>
 <tr>
 <td>
-<form id='matrix_form' action='/recolor/matrix' method='post'>
+<form id='matrix_form' method='post'>
   <p><b>Введите матрицу преобразования:</b></p>
   <p><textarea rows='10' cols='45' id='matrix' name='matrix' onchange=matrix_changed()>
 
