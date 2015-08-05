@@ -3,6 +3,9 @@ project( recolor-test )
 
 include( IdeFileStructure )
 
+find_package( Threads )
+list( APPEND libs ${CMAKE_THREAD_LIBS_INIT} )
+
 find_package( Boost COMPONENTS log unit_test_framework )
 
 if ( ${Boost_FOUND} )

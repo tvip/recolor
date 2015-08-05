@@ -10,8 +10,8 @@ int main(int argc, char *argv[]) {
   while (true) {
     auto p = std::chrono::system_clock::now();
     auto t = std::chrono::system_clock::to_time_t(p);
-    std::cout << std::ctime(&t);
-    std::cerr << std::ctime(&t);
+    std::cout << "stdout " << std::ctime(&t);
+    std::cerr << "stderr " << std::ctime(&t);
 
     if (++i > 5)
       break;

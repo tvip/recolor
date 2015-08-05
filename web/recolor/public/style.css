@@ -2,6 +2,25 @@ body {
   font: 12px Arial, sans-serif;
 }
 
+#picker {
+  margin:0;
+  padding:0;
+  border:0;
+  width:70px;
+  height:20px;
+  border-right:20px solid green;
+  line-height:20px;
+}
+
+.color-box {
+  float:left;
+  width:30px;
+  height:30px;
+  margin:5px;
+  border: 1px solid white;
+}
+
+
 #dropZone {
   color: #555;
   font-size: 18px;

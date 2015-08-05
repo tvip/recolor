@@ -48,6 +48,8 @@ function dragndrop() {
         return false
       }
 
+      new Image(file)
+
       // Создаем запрос
       var xhr = new XMLHttpRequest()
       xhr.upload.addEventListener('progress', uploadProgress, false)
@@ -81,25 +83,5 @@ function dragndrop() {
       }
     }
   }
-
-
-  $("#matrix_form").submit(function(event) {
-
-    /* stop form from submitting normally */
-    event.preventDefault()
-
-    /* get some values from elements on the page: */
-    var $form = $( this ),
-          url = $form.attr( 'action' )
-
-    /* Send the data using post */
-    var posting = $.post( url, { matrix: $('#matrix').val() } )
-
-    /* Alerts the results */
-    posting.done(function( data ) {
-      $('#img').attr('src', 'data:image/png;base64,' + data)
-      console.log('success')
-    })
-  })
 
 }

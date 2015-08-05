@@ -5,7 +5,7 @@ project( recolor VERSION 0.1 )
 option( ${PROJECT_NAME}_BUILD_TOOL "build command line tool" ON )
 option( ${PROJECT_NAME}_BUILD_TESTS "enable unit testing" ON )
 option( ${PROJECT_NAME}_BUILD_APP "build Mac OS app bundle" ${APPLE} )
-option( ${PROJECT_NAME}_BUILD_SHARED "build shared lib" ON )
+option( ${PROJECT_NAME}_BUILD_SHARED "build shared lib" OFF )
 option( ${PROJECT_NAME}_BUILD_STATIC "build static lib" ON )
 
 set(ConfigPackageLocation lib/cmake/)
@@ -19,7 +19,7 @@ set(INSTALL_DIRS
   INCLUDES DESTINATION ${INCLUDE_INSTALL_DIR}
 )
 
-set( CMAKE_CXX_STANDARD 98 )
+set( CMAKE_CXX_STANDARD 11 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 set( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" )
@@ -40,6 +40,7 @@ if ( ${${PROJECT_NAME}_BUILD_TOOL} )
 endif()
 
 if ( ${${PROJECT_NAME}_BUILD_TESTS} )
+  include( CTest )
   enable_testing()
   add_subdirectory( test )
 endif()
@@ -58,7 +59,10 @@ endif()
 
 add_subdirectory(web)
 
-install(TARGETS ${PROJECT_NAME}-shared ${PROJECT_NAME}-static EXPORT ${PROJECT_NAME}Targets
+install(TARGETS
+  #${PROJECT_NAME}-shared
+  ${PROJECT_NAME}-static
+  EXPORT ${PROJECT_NAME}Targets
   ${INSTALL_DIRS}
 )
 
