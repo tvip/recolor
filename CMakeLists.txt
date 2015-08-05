@@ -57,8 +57,6 @@ if ( ${${PROJECT_NAME}_BUILD_STATIC} )
   add_library( ${PROJECT_NAME}-static STATIC "$<TARGET_OBJECTS:${PROJECT_NAME}_object>" )
 endif()
 
-add_subdirectory(web)
-
 install(TARGETS
   #${PROJECT_NAME}-shared
   ${PROJECT_NAME}-static

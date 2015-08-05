@@ -121,16 +121,6 @@ class Recolor(object):
         self._stderr = Stderr()
 
     @cherrypy.expose
-    @cherrypy.tools.template(template='abc.html')
-    def abc(self):
-        return {'msg': 'msg'}
-
-    @cherrypy.expose
-    @cherrypy.tools.template(template='orc.html')
-    def orc(self):
-        return {'msg': 'Hell Scream'}
-
-    @cherrypy.expose
     @cherrypy.tools.template(template='index.html')
     def index(self):
         '''
