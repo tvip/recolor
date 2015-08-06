@@ -65,6 +65,7 @@ function matrix_changed() {
           $(el).css('background-color', '#'+hex)
           setNeedsPreview()
         },
+        submit:0,
         onSubmit:function(hsb,hex,rgb,el) {
           $(el).css('background-color', '#'+hex)
           $(el).colpickHide()
@@ -84,6 +85,7 @@ function preview() {
   var matrix = matrix_from_colors()
   console.log( matrix )
   recolor( matrix )
+  $('#matrix').val(matrix_from_colors())
   
   needs_preview = false
   lock_preview = true
