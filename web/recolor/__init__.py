@@ -193,5 +193,6 @@ class Recolor(object):
         return 'ok'.encode()
 
     def clean_tmp_dir(self):
+        # TODO: удалять директории закончившихся сессий
         cherrypy.log('Cleanup tmp dir')
         util.purge('tmp/', '^(?!\.)')
