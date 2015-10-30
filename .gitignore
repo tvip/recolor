@@ -3,6 +3,5 @@ __pycache__
 .pydevproject
 web/var
 web/build
-web/utils
 web/tmp
 *~

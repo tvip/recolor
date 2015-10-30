@@ -181,7 +181,7 @@ class Recolor(object):
 
         for fname in _images():
             logger = util.ProcLogger([
-                'utils/bin/recolor-tool',
+                'build/Staging/bin/recolor-tool',
                 os.path.join('tmp', cherrypy.session.id, 'matrix.txt'),
                 '-img',
                 os.path.join('tmp', cherrypy.session.id, 'orig', fname),

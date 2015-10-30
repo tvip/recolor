@@ -1,97 +1,69 @@
-cmake_minimum_required( VERSION 3.2 )
-project( recolor VERSION 0.1 )
+cmake_minimum_required( VERSION 2.8 )
+project( hls-segmenter-metaproject )
 
-# setting CMAKE_DISABLE_FIND_PACKAGE_Boost to TRUE force disables using Boost libs
-option( ${PROJECT_NAME}_BUILD_TOOL "build command line tool" ON )
-option( ${PROJECT_NAME}_BUILD_TESTS "enable unit testing" ON )
-option( ${PROJECT_NAME}_BUILD_APP "build Mac OS app bundle" ${APPLE} )
-option( ${PROJECT_NAME}_BUILD_SHARED "build shared lib" OFF )
-option( ${PROJECT_NAME}_BUILD_STATIC "build static lib" ON )
+include( ExternalProject )
+include( ProcessorCount )
 
-set(ConfigPackageLocation lib/cmake/)
-set(INCLUDE_INSTALL_DIR include/ )
-set(LIB_INSTALL_DIR lib/ )
-set(BINARY_INSTALL_DIR bin/ )
-set(INSTALL_DIRS
-	LIBRARY DESTINATION ${LIB_INSTALL_DIR}
-  ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
-  RUNTIME DESTINATION ${BIN_INSTALL_DIR}
-  INCLUDES DESTINATION ${INCLUDE_INSTALL_DIR}
-)
+set( TOOLS_DIR ${CMAKE_BINARY_DIR}/Tools )
 
-set( CMAKE_CXX_STANDARD 11 )
-set( CMAKE_CXX_STANDARD_REQUIRED ON )
-
-set( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" )
-include( IdeFileStructure )
-
-find_package( GLM REQUIRED )
-add_definitions( -DGLM_FORCE_CXX98=1 -DGLM_FORCE_NO_CTOR_INIT=1 -DGLM_FORCE_RADIANS=1 )
-include_directories( ${GLM_INCLUDE_DIRS} )
-#message( FATAL_ERROR "GLM_INCLUDE_DIRS ${GLM_INCLUDE_DIRS}" )
-
-set( ${PROJECT_NAME}_SRC
-  recolor.hpp recolor.cpp
-)
-add_library( ${PROJECT_NAME}_object OBJECT ${${PROJECT_NAME}_SRC} )
-
-if ( ${${PROJECT_NAME}_BUILD_TOOL} )
-	add_subdirectory( tool )
+set( MAKE_JOBSERVER_FLAGS "" )
+ProcessorCount(N)
+if(NOT N EQUAL 0)
+  set( MAKE_JOBSERVER_FLAGS ${MAKE_JOBSERVER_FLAGS} -j${N} )
 endif()
 
-if ( ${${PROJECT_NAME}_BUILD_TESTS} )
-  include( CTest )
-  enable_testing()
-  add_subdirectory( test )
-endif()
-
-if ( ${${PROJECT_NAME}_BUILD_APP} )
-  add_subdirectory( app )
-endif()
-
-if ( ${${PROJECT_NAME}_BUILD_SHARED} )
-  add_library( ${PROJECT_NAME}-shared SHARED "$<TARGET_OBJECTS:${PROJECT_NAME}_object>" )
-endif()
-
-if ( ${${PROJECT_NAME}_BUILD_STATIC} )
-  add_library( ${PROJECT_NAME}-static STATIC "$<TARGET_OBJECTS:${PROJECT_NAME}_object>" )
-endif()
-
-install(TARGETS
-  #${PROJECT_NAME}-shared
-  ${PROJECT_NAME}-static
-  EXPORT ${PROJECT_NAME}Targets
-  ${INSTALL_DIRS}
+set( CONFIGURE_ENV
+  PATH=${TOOLS_DIR}/bin:$ENV{PATH}
+  PKG_CONFIG_PATH=${TOOLS_DIR}/lib/pkgconfig
+  C_INCLUDE_PATH=${TOOLS_DIR}/include
+  LD_LIBRARY_PATH=${TOOLS_DIR}/lib
 )
 
-install( FILES recolor.hpp
-  DESTINATION include
-  COMPONENT Devel
+ExternalProject_Add( openssl
+  URL "https://www.openssl.org/source/openssl-1.0.2d.tar.gz"
+  CONFIGURE_COMMAND ${CONFIGURE_ENV} ./config --prefix=${TOOLS_DIR} #enable-shared
+  BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} # OpenSSL не поддерживает многопоточную сборку
+  BUILD_IN_SOURCE 1
 )
 
-include( CMakePackageConfigHelpers )
-write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Version.cmake"
-  COMPATIBILITY AnyNewerVersion
+ExternalProject_Add( curl
+  DEPENDS openssl
+  URL "http://curl.haxx.se/download/curl-7.45.0.tar.gz"
+  CONFIGURE_COMMAND ${CONFIGURE_ENV} ./configure --prefix=${TOOLS_DIR} --with-ssl=${TOOLS_DIR}/lib
+  BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} ${MAKE_JOBSERVER_FLAGS}
+  BUILD_IN_SOURCE 1
 )
 
-export(EXPORT ${PROJECT_NAME}Targets
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake"
+ExternalProject_Add( cmake
+  DEPENDS curl
+  URL "https://cmake.org/files/v3.4/cmake-3.4.0-rc2.tar.gz"
+  #URL "http://www.cmake.org/files/v3.3/cmake-3.3.2.tar.gz"
+  CMAKE_ARGS
+    -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_INSTALL_PREFIX=${TOOLS_DIR}
+    -DCMAKE_USE_SYSTEM_LIBRARY_CURL:BOOL=ON
+    -DBUILD_TESTING:BOOL=OFF
+  #CONFIGURE_COMMAND ${CONFIGURE_ENV} ./configure --prefix=${TOOLS_DIR} --system-curl
+  #BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} ${MAKE_JOBSERVER_FLAGS}
+  #BUILD_IN_SOURCE 1
 )
 
-configure_package_config_file(
-	recolor-config.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
-	INSTALL_DESTINATION lib/cmake
-	PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR BINARY_INSTALL_DIR
+ExternalProject_Add( src
+  DEPENDS cmake
+  SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src
+  CMAKE_COMMAND ${CONFIGURE_ENV} ${TOOLS_DIR}/bin/cmake
+  CMAKE_ARGS
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DCMAKE_MODULE_PATH=${CMAKE_CURRENT_SOURCE_DIR}/cmake
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/Staging
+  #INSTALL_COMMAND ${CMAKE_COMMAND} -E echo "skip"
 )
 
-install(EXPORT ${PROJECT_NAME}Targets
-  FILE ${PROJECT_NAME}Targets.cmake
-  DESTINATION ${ConfigPackageLocation}
+ExternalProject_Add_Step( src forcebuild
+  COMMAND ${CMAKE_COMMAND} -E echo "Force build"
+  DEPENDEES configure
+  DEPENDERS build
+  ALWAYS 1
 )
 
-install( FILES
-	"${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
-	"${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Version.cmake"
-  DESTINATION ${ConfigPackageLocation}
-)
+#add_subdirectory( test-data )

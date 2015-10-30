@@ -6,6 +6,7 @@ import jinja2tool
 
 import os
 
+import recolor_server_path as path
 import recolor
 
 
@@ -22,7 +23,7 @@ def setup_config(template_fname, result_fname, env):
 
 if __name__ == '__main__':
     cherrypy.tools.template = jinja2tool.Jinja2Tool()
-    cherrypy.config.update('server.conf')
+    cherrypy.config.update(os.path.join(path.server_dir, 'server.conf'))
 
     cherrypy.tree.mount(
         recolor.Recolor(), '/recolor',
@@ -30,7 +31,9 @@ if __name__ == '__main__':
             template_fname='recolor/root.conf',
             result_fname='var/recolor.conf',
             env={
-                'staticdir': os.path.join(os.path.abspath(os.getcwd()), 'recolor')
+                'staticdir': os.path.join(path.server_dir, 'recolor'),
+                'access_file': os.path.join(path.server_dir, 'var', 'recolor.access'),
+                'error_file': os.path.join(path.server_dir, 'var', 'recolor.error')
             }
         ))
 
