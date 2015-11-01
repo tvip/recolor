@@ -1,6 +1,9 @@
 Запуск веб сервера
 ---------------------------
 
+Требуется python3 с установленными cherrypy и jinja2
+`sydo apt-get install python3 && sudo pip3 install cherrypy jinja2`
+
 Для начала нужно собрать консольную тулзу recolor-tool
 `./web/build.py`
 
