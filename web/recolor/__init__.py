@@ -126,8 +126,12 @@ class Recolor(object):
         TODO: Попробывать сделать свою сессию для каждого таба в браузере
         http://stackoverflow.com/questions/368653/how-to-differ-sessions-in-browser-tabs
         '''
+
         cherrypy.session.update([])
-        return {'session_id': cherrypy.session.id}
+        return {
+            'session_id': cherrypy.session.id,
+            'images': _images()
+        }
 
     def _cp_dispatch(self, vpath):
 

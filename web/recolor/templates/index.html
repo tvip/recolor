@@ -41,7 +41,14 @@ session_id: {{session_id}}
   Для загрузки, перетащите файл сюда.
 </div>
 
-<table id='images_table' border='1'></table>
+{% for fname in images %}
+<div>
+  {{ fname }}
+</div>
+{% endfor %}
+
+<table id='images_table' border='1'>
+</table>
 
 <table>
 <tr>

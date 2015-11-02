@@ -5,3 +5,4 @@ web/var
 web/build
 web/tmp
 *~
+.*
