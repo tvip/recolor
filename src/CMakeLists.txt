@@ -1,5 +1,5 @@
 cmake_minimum_required( VERSION 3.2 )
-project( recolor VERSION 0.1 )
+project( recolor VERSION 0.2 )
 
 # setting CMAKE_DISABLE_FIND_PACKAGE_Boost to TRUE force disables using Boost libs
 option( ${PROJECT_NAME}_BUILD_TOOL "build command line tool" ON )
