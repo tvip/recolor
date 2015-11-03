@@ -26,10 +26,10 @@ if __name__ == '__main__':
             if '.xml' == os.path.splitext(file)[-1]:
                 recolor_xml(os.path.join(root, file))
 
-    match_hex_color = re.match('^#([0-9a-f]*)$', '#11223344')
+    match_hex_color = re.match('^#(([0-9a-f]){6}|([0-9a-f]){8})$', '#11224467')
     if match_hex_color:
         hex_string = match_hex_color.groups()[0]
         number = int(hex_string, 16)
-        
+
         print('match', int(hex_string, 16))
         pass
