@@ -10,6 +10,7 @@ import base64
 import queue
 import random
 import threading
+import recolor_server_path as path
 
 
 class Pocessing:
@@ -185,7 +186,7 @@ class Recolor(object):
 
         for fname in _images():
             logger = util.ProcLogger([
-                'build/Staging/bin/recolor-tool',
+                path.recolor_tool,
                 os.path.join('tmp', cherrypy.session.id, 'matrix.txt'),
                 '-img',
                 os.path.join('tmp', cherrypy.session.id, 'orig', fname),

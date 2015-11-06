@@ -27,7 +27,7 @@ public:
   ColorTransition( const std::vector<Transition> &transition );
   
   Image fromImage( const Image &img ) const;
-  glm::vec3 fromColor( const rgb &color ) const;
+  rgb fromColor( const rgb &color ) const;
   
 private:
   typedef std::vector<Transition> Tetr;
@@ -65,6 +65,7 @@ private:
   template <typename T>
   static std::vector< std::vector<T> > combos(const unsigned n, const std::vector<T> &k)
   {
+#warning TODO: оптимизировать вектор в функции combos(n,k)
     std::vector< std::vector<T> > res;
     
     for ( std::vector<unsigned> s : subset(n,0,k.size()) ) {

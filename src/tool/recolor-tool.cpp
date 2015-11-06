@@ -9,10 +9,15 @@
 #include <pugixml.hpp>
 
 #include <chrono>
+#include <stdexcept>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
+#include <list>
+#include "../recolor.hpp"
+
 
 static ColorTransition *s_recolor;
 static std::chrono::nanoseconds s_nanoseconds;
@@ -139,7 +144,8 @@ struct ProcessXML : public Process {
 
 ColorTransition *make_transition( const std::string &transition_fname )
 {
-  std::cout << "Transition: \"" << transition_fname << "\"" << std::endl;
+  std::cerr << "Transition: \"" << transition_fname << "\"" << std::endl;
+  
   std::fstream fTransition( transition_fname, std::ios_base::in );
   std::vector<ColorTransition::Transition > transition;
   ColorTransition::Transition t;
@@ -151,7 +157,21 @@ ColorTransition *make_transition( const std::string &transition_fname )
     transition.push_back( t );
   }
 
-  return new ColorTransition(transition);
+  try {
+    return new ColorTransition(transition);
+  }
+  catch (const std::exception& e) {
+    return nullptr;
+  }
+}
+
+template<typename T>
+inline T lexical_cast(const std::string& str) {
+  T var;
+  std::istringstream iss;
+  iss.str(str);
+  iss >> var;
+  return var;
 }
 
 int main (int argc, char *argv[])
@@ -160,23 +180,26 @@ int main (int argc, char *argv[])
   iluInit();
 
   for ( int i = 0; i < argc; ++i ) {
-    std::cout << argv[i] << std::endl;
+    std::cerr << argv[i] << std::endl;
   }
   
   std::vector<Process *> proc_queue;
   std::string transition_fname;
   std::string input_dir, output_dir;
   std::string xml_xpath, xml_atrib;
+  std::list<std::string> color_components;
   
   int c = 0;
   if ( ++c < argc ) {
     transition_fname = argv[c];
   } else {
-    std::cout << "usage examples :" << std::endl << "recolor-tool /Users/iKoznov/Developer/recolor/app/res/orange.txt -in /Users/iKoznov/Developer/tvip/tvip/themes/tvip_light/resources -out /Users/iKoznov/Desktop/res -xpath //image[@file] -xattr file -xml /Users/iKoznov/Developer/tvip/tvip/themes/tvip_light/resources.xml" << std::endl;
+    std::cerr << "usage examples :" << std::endl
+    << "recolor-tool /Users/iKoznov/Developer/recolor/app/res/orange.txt -in /Users/iKoznov/Developer/tvip/tvip/themes/tvip_light/resources -out /Users/iKoznov/Desktop/res -xpath //image[@file] -xattr file -xml /Users/iKoznov/Developer/tvip/tvip/themes/tvip_light/resources.xml" << std::endl
+    << "recolor-tool matrix.txt 0.7 0.1 0.9" << std::endl;
   }
   
   while ( ++c < argc ) {
-    std::cout << "ARG: " << argv[c] << std::endl;
+    std::cerr << "ARG: " << argv[c] << std::endl;
     if ( std::strcmp( argv[c], "-img" ) == 0 ) {
       ProcessIMG *procIMG = new ProcessIMG();
       procIMG->input_file = argv[++c];
@@ -204,6 +227,9 @@ int main (int argc, char *argv[])
     else if ( std::strcmp( argv[c], "-out") == 0 ) {
       output_dir = argv[++c];
     }
+    else {
+      color_components.push_back(std::string(argv[c]));
+    }
   }
 
   s_recolor = make_transition( transition_fname );
@@ -211,12 +237,27 @@ int main (int argc, char *argv[])
   for ( Process *p : proc_queue ) {
     p->make();
   }
+  
+  if ( color_components.size() >= 3 ) {
+    ColorTransition::rgb color;
+    auto component = color_components.begin();
+    for (int i = 0; i < 3; ++i) {
+      color[i] = lexical_cast<float>(*component);
+      component = ++component;
+    }
+    std::cerr << "color components: " << glm::to_string(color) << std::endl;
+    
+    ColorTransition::rgb result = s_recolor->fromColor(color);
+    std::cout << result.r << " " << result.g << " " << result.b << std::endl;
+  }
 
   delete  s_recolor;
 
-  std::cout << "Total pixels: " << s_pixels << std::endl;
-  std::cout << "Seconds: " << ( s_nanoseconds.count() / 1000000000.0 ) << std::endl;
-  std::cout << "Avarage pixels per second: " << (double)s_pixels / ( (double)s_nanoseconds.count() / 1000000000.0 ) << std::endl;
-
+  if ( !proc_queue.empty() ) {
+    std::cout << "Total pixels: " << s_pixels << std::endl;
+    std::cout << "Seconds: " << ( s_nanoseconds.count() / 1000000000.0 ) << std::endl;
+    std::cout << "Avarage pixels per second: " << (double)s_pixels / ( (double)s_nanoseconds.count() / 1000000000.0 ) << std::endl;
+  }
+  
   return 0;
 }

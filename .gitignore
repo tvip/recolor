@@ -1,3 +1,4 @@
+*.kdev4
 __pycache__
 .project
 .pydevproject

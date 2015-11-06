@@ -3,6 +3,9 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
+#include <stdexcept>
+#include <sstream>
+
 const float ColorTransition::_accuracy = 0.001f;
 
 ColorTransition::ColorTransition( const std::vector<Transition> &transition )
@@ -33,6 +36,12 @@ ColorTransition::ColorTransition( const std::vector<Transition> &transition )
 
 std::vector<std::vector<unsigned> > ColorTransition::subset(unsigned n, unsigned offset, unsigned size)
 {
+  if (size == 0) {
+    std::stringstream  msg;
+    msg << __PRETTY_FUNCTION__ << ": size must be positive number";
+    throw std::logic_error(msg.str());
+  }
+  
   std::vector<std::vector<unsigned> > res;
   
   if (n == 1) {
