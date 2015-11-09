@@ -30,7 +30,7 @@ def color_to_string(color):
 
 
 def recolor(color):
-    red, green, blue, alpha = color
+    alpha, red, green, blue = color
 
     stdout, stderr = subprocess.Popen([
         path.recolor_tool,
@@ -41,10 +41,12 @@ def recolor(color):
         stderr=subprocess.PIPE
     ).communicate()
 
-    result = [float(token) for token in stdout.decode().split()]
+    result = []
 
     if alpha is not None:
         result.append(alpha)
+
+    result.extend([float(token) for token in stdout.decode().split()])
 
     return result
 
