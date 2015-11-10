@@ -195,7 +195,8 @@ int main (int argc, char *argv[])
   } else {
     std::cerr << "usage examples :" << std::endl
     << "recolor-tool /Users/iKoznov/Developer/recolor/app/res/orange.txt -in /Users/iKoznov/Developer/tvip/tvip/themes/tvip_light/resources -out /Users/iKoznov/Desktop/res -xpath //image[@file] -xattr file -xml /Users/iKoznov/Developer/tvip/tvip/themes/tvip_light/resources.xml" << std::endl
-    << "recolor-tool matrix.txt 0.7 0.1 0.9" << std::endl;
+    << "recolor-tool matrix.txt 0.7 0.1 0.9" << std::endl
+    << "recolor-tool matrix.txt -img picture.png result.png" << std::endl;
   }
   
   while ( ++c < argc ) {

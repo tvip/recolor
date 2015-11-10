@@ -92,5 +92,5 @@ if __name__ == '__main__':
 
     for root, dirs, files in os.walk(working_dir):
         for file in files:
-            if '.xml' == os.path.splitext(file)[-1]:
+            if '.xml'.upper() == os.path.splitext(file)[-1].upper():
                 recolor_xml(os.path.join(root, file))
