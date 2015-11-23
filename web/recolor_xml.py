@@ -4,7 +4,6 @@ import sys
 import os
 import re
 import subprocess
-import xml.etree.ElementTree as ET
 import recolor_server_path as path
 
 
@@ -51,28 +50,21 @@ def recolor(color):
     return result
 
 
-def recolor_node(node):
-    for key, value in node.attrib.items():
-        color = color_from_string(value)
-        if color:
-            new_color = color_to_string(recolor(color))
-            print('ATTR', value, '->', new_color)
-            node.attrib[key] = new_color
-    if node.text:
-        color = color_from_string(node.text)
-        if color:
-            new_color = color_to_string(recolor(color))
-            print('TEXT', node.text, '->', new_color)
-            node.text = new_color
-    for child in node:
-        recolor_node(child)
+def replace_color(match):
+    before = match.group()
+    color = color_from_string(before)
+    result = color_to_string(recolor(color))
+    print('REPLACE', before, '->', result)
+    return result
 
 
 def recolor_xml(fname):
     print(fname)
-    tree = ET.parse(fname)
-    recolor_node(tree.getroot())
-    tree.write(fname)
+    with open(fname, 'r+') as xml_file:
+        result = re.sub('#(([0-9a-f]){8}|([0-9a-f]){6})', replace_color, xml_file.read(), flags=re.IGNORECASE)
+        xml_file.seek(0)
+        xml_file.write(result)
+        xml_file.truncate()
 
 
 if __name__ == '__main__':
@@ -81,7 +73,7 @@ if __name__ == '__main__':
         print(
             'Этот скрипт рекурсивно сканирует xml файлы в указанной дирректории.'
             ' И если находит цвет записанный в хексовом формате заменяет его в'
-            ' в соответствии файлом с матрицы. Цвета ищются в заначениях xml'
+            ' в соответствии с файлом матрицы. Цвета ищутся в значениях xml'
             ' атрибутов и теле узлов.'
         )
         exit()
