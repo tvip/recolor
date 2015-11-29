@@ -151,9 +151,66 @@ function recolor(matrix) {
   })
 }
 
+var w_r = 0.299
+var w_b = 0.114
+var w_g = 1 - w_r - w_b
+var u_max = 0.436
+var v_max = 0.615
+
+function yuv2rgb(yuv) {
+  var y = yuv[0], u = yuv[1], v = yuv[2]
+  return [
+    y + v * (1 - w_r) / v_max,
+    y - u * w_b * (1 - w_b) / (u_max * w_g) - v * w_r * (1 - w_r) / (v_max * w_g),
+    y + u * (1 - w_b) / u_max
+  ]
+}
+
+function rgb2yuv(rgb) {
+  var r = rgb[0], g = rgb[1], b = rgb[2]
+  var y = w_r * r + w_g * g + w_b * b
+  return [
+    y,
+    u_max * ((b - y) / (1 - w_b)),
+    v_max * ((r - y) / (1 - w_r))
+  ]
+}
+
+function draw_yuv(y) {
+  var canvas = document.getElementById('yuv-1')
+  var ctx = canvas.getContext('2d')
+  var id = ctx.createImageData(canvas.width, canvas.height)
+  var d = id.data
+  for (var j = 0; j < canvas.height; ++j) {
+    var v = v_max * (2 * j/canvas.height - 1)
+    for (var i = 0; i < canvas.width; ++i) {
+      var offset = 4*(j*canvas.width + i)
+      var u = u_max * (2 * i/canvas.width - 1)
+      var rgb = yuv2rgb([y, u, v])
+      d[offset + 0] = 255 * rgb[0]
+      d[offset + 1] = 255 * rgb[1]
+      d[offset + 2] = 255 * rgb[2]
+      d[offset + 3] = 255
+    }
+  }
+  ctx.putImageData(id, 0, 0);
+  //alert(yuv2rgb(rgb2yuv([0.5,0.6,0.8])))
+}
+
 function recolor_init() {
   console.log('welcome to Recolor')
-  
+
+  var slider = document.getElementById('brightness-value')
+  var label = document.getElementById('brightness-label')
+  slider.addEventListener('change', function(e) {
+    label.innerHTML = slider.value
+    draw_yuv(parseFloat(slider.value))
+  })
+
+  slider.value = 0.5
+  var event = new CustomEvent('change', { "detail": "Example of an event" })
+  slider.dispatchEvent(event)
+
   // TODO: подгружать перекрашенные картинки без нажатия на кнопку 
   $("#matrix_form").submit(function(event) {
 

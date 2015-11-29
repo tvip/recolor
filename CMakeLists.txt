@@ -43,7 +43,7 @@ ExternalProject_Add( curl
 
 ExternalProject_Add( cmake
   DEPENDS curl
-  URL "https://cmake.org/files/v3.4/cmake-3.4.0-rc2.tar.gz"
+  URL "https://cmake.org/files/v3.4/cmake-3.4.0.tar.gz"
   #URL "http://www.cmake.org/files/v3.3/cmake-3.3.2.tar.gz"
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE=Release
