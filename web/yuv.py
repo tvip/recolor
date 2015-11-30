@@ -31,9 +31,12 @@ def rgb2yuv(r, g, b):
 
 
 if __name__ == '__main__':
-    yuv = rgb2yuv(1, 0, 0)
-    rgb = yuv2rgb(1, 0, 0)
-    print(yuv)
-    print(rgb)
+    a = rgb2yuv(0, 0, 1)
+    b = rgb2yuv(0, 1, 0)
+    print(yuv2rgb(*a))
+    print(yuv2rgb(*b))
+    c = a[0], b[1], b[2]
+    print(c)
+    print(yuv2rgb(*c))
 
 

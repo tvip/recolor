@@ -212,6 +212,21 @@ function rgb2yuv(rgb) {
   ]
 }
 
+var _edges = [
+  [ rgb2yuv([0,0,0]), rgb2yuv([1,0,0]) ],
+  [ rgb2yuv([1,0,0]), rgb2yuv([1,1,0]) ],
+  [ rgb2yuv([1,1,0]), rgb2yuv([0,1,0]) ],
+  [ rgb2yuv([0,1,0]), rgb2yuv([0,0,0]) ],
+  [ rgb2yuv([0,0,0]), rgb2yuv([0,0,1]) ],
+  [ rgb2yuv([1,0,0]), rgb2yuv([1,0,1]) ],
+  [ rgb2yuv([1,1,0]), rgb2yuv([1,1,1]) ],
+  [ rgb2yuv([0,1,0]), rgb2yuv([0,1,1]) ],
+  [ rgb2yuv([0,0,1]), rgb2yuv([1,0,1]) ],
+  [ rgb2yuv([1,0,1]), rgb2yuv([1,1,1]) ],
+  [ rgb2yuv([1,1,1]), rgb2yuv([0,1,1]) ],
+  [ rgb2yuv([0,1,1]), rgb2yuv([0,0,1]) ]
+]
+
 function draw_yuv() {
   var slider = document.getElementById('brightness-value')
   var y = parseFloat(slider.value)
@@ -233,6 +248,14 @@ function draw_yuv() {
   }
   ctx.putImageData(id, 0, 0)
   //alert(yuv2rgb(rgb2yuv([0.5,0.6,0.8])))
+
+  for(var edge = 0; edge < _edges.length; ++edge) {
+    var A = _edges[edge][0]
+    var B = _edges[edge][1]
+    var u = (y - A[0]) * (B[1] - A[1]) / (B[0] - B[1]) + A[1]
+    var v = (y - A[0]) * (B[2] - A[2]) / (B[0] - B[2]) + A[1]
+    alert([u, v])
+  }
 }
 
 function draw_selector(x,y) {
