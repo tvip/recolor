@@ -30,8 +30,11 @@ function Image(file) {
   images[name] = this
 }
 
+var _matrix = new Array()
+var _selected_color = -1
 function matrix_changed() {
   console.log('matrix changed')
+  _matrix = new Array()
   
   var colors_table = document.getElementById('colors_table')
   while (colors_table.rows.length) {
@@ -41,7 +44,9 @@ function matrix_changed() {
   var splitted = $('#matrix').val().split(/[\s]+/)
   var color = new Array()
   var row
-  
+
+  var index = 0
+  var transition = new Array()
   for ( var i in splitted ) {
 
     if (splitted[i].length) {
@@ -50,7 +55,10 @@ function matrix_changed() {
     if (color.length == 3) {
       if ((row?row.cells.length:0) % 2 == 0) {
         row = colors_table.insertRow(colors_table.rows.length)
+        if (transition.length) _matrix.push(transition)
+        transition = new Array();
       }
+      transition.push(color)
       
       //console.log('rows: ' + colors_table.rows.length + '  cells: ' + row.cells.length)
       var cell = row.insertCell(row.cells.length)
@@ -59,7 +67,7 @@ function matrix_changed() {
       var hex = RGBToHex(color[0], color[1], color[2])
       $(cell).css('background-color', '#'+hex)
       
-      $(cell).colpick({
+      /*$(cell).colpick({
         color: hex,
         onChange:function(hsb,hex,rgb,el,bySetColor) {
           $(el).css('background-color', '#'+hex)
@@ -71,12 +79,40 @@ function matrix_changed() {
           $(el).colpickHide()
           $('#matrix').val(matrix_from_colors())
         }
+      })*/
+
+      cell.index = index++
+      cell.addEventListener('click', function(e) {
+        //alert(e.target.index)
+        var row = Math.floor(e.target.index/2)
+        var col = e.target.index % 2
+        var rgb = _matrix[row][col]
+        var yuv = rgb2yuv([rgb[0]/255, rgb[1]/255, rgb[2]/255])
+        var canvas = document.getElementById('yuv-1')
+        //alert(rgb2yuv([rgb[0]/255, rgb[1]/255, rgb[2]/255]))
+        //alert(typeof(yuv[0]))
+        var slider = document.getElementById('brightness-value')
+        slider.value = yuv[0]
+        var event = new CustomEvent('change', { "detail": "Example of an event" })
+        slider.dispatchEvent(event)
+        draw_yuv()
+        draw_selector(canvas.width * (yuv[1] + u_max) / (2*u_max), canvas.height * (yuv[2] + v_max) / (2*v_max))
       })
       
       //console.log('HEX: ' + RGBToHex(color[0], color[1], color[2]))
       color = new Array()
     }
   }
+  _matrix.push(transition)
+  //log_matrix()
+}
+
+function log_matrix() {
+  var msg = ''
+  for (var tr = 0; tr < _matrix.length; ++tr) {
+    msg += _matrix[tr][0] + ' -> ' + _matrix[tr][1] + '\n'
+  }
+  alert(msg)
 }
 
 var needs_preview = false
@@ -176,7 +212,9 @@ function rgb2yuv(rgb) {
   ]
 }
 
-function draw_yuv(y) {
+function draw_yuv() {
+  var slider = document.getElementById('brightness-value')
+  var y = parseFloat(slider.value)
   var canvas = document.getElementById('yuv-1')
   var ctx = canvas.getContext('2d')
   var id = ctx.createImageData(canvas.width, canvas.height)
@@ -193,8 +231,23 @@ function draw_yuv(y) {
       d[offset + 3] = 255
     }
   }
-  ctx.putImageData(id, 0, 0);
+  ctx.putImageData(id, 0, 0)
   //alert(yuv2rgb(rgb2yuv([0.5,0.6,0.8])))
+}
+
+function draw_selector(x,y) {
+  var canvas = document.getElementById('yuv-1')
+  var ctx = canvas.getContext('2d')
+  var R = 5
+
+  ctx.beginPath()
+  ctx.arc(x, y, R, 0, 2 * Math.PI, false)
+  ctx.strokeStyle = '#000000'
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.arc(x, y, R-1, 0, 2 * Math.PI, false)
+  ctx.strokeStyle = '#ffffff'
+  ctx.stroke()
 }
 
 function recolor_init() {
@@ -204,7 +257,11 @@ function recolor_init() {
   var label = document.getElementById('brightness-label')
   slider.addEventListener('change', function(e) {
     label.innerHTML = slider.value
-    draw_yuv(parseFloat(slider.value))
+    draw_yuv()
+    //draw_selector(100,100)
+  })
+
+  slider.addEventListener('click', function(e) {
   })
 
   slider.value = 0.5
