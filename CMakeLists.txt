@@ -34,7 +34,7 @@ ExternalProject_Add( openssl
 
 ExternalProject_Add( curl
   DEPENDS openssl
-  URL "http://curl.haxx.se/download/curl-7.45.0.tar.gz"
+  URL "http://curl.haxx.se/download/curl-7.46.0.tar.gz"
   CONFIGURE_COMMAND ${HOST_ENV} ./configure --prefix=${TOOLS_DIR} --with-ssl #=${TOOLS_DIR}/lib #--enable-static --disable-shared
   BUILD_COMMAND ${HOST_ENV} ${CMAKE_MAKE_PROGRAM} ${MAKE_JOBSERVER_FLAGS}
   INSTALL_COMMAND ${HOST_ENV} ${CMAKE_MAKE_PROGRAM} install
