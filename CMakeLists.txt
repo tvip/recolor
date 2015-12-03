@@ -1,5 +1,5 @@
 cmake_minimum_required( VERSION 2.8 )
-project( hls-segmenter-metaproject )
+project( metaproject )
 
 include( ExternalProject )
 include( ProcessorCount )
@@ -25,7 +25,7 @@ set( HOST_ENV
 )
 
 ExternalProject_Add( openssl
-  URL "https://www.openssl.org/source/openssl-1.0.2d.tar.gz"
+  URL "https://www.openssl.org/source/openssl-1.0.2e.tar.gz"
   CONFIGURE_COMMAND ${HOST_ENV} ./config --prefix=${TOOLS_DIR} #enable-shared
   BUILD_COMMAND ${HOST_ENV} ${CMAKE_MAKE_PROGRAM} # OpenSSL не поддерживает многопоточную сборку
   INSTALL_COMMAND ${HOST_ENV} ${CMAKE_MAKE_PROGRAM} install
