@@ -24,37 +24,6 @@ set( HOST_ENV
   LD_LIBRARY_PATH=${TOOLS_DIR}/lib
 )
 
-ExternalProject_Add( openssl
-  URL "https://www.openssl.org/source/openssl-1.0.2e.tar.gz"
-  CONFIGURE_COMMAND ${HOST_ENV} ./config --prefix=${TOOLS_DIR} #enable-shared
-  BUILD_COMMAND ${HOST_ENV} ${CMAKE_MAKE_PROGRAM} # OpenSSL не поддерживает многопоточную сборку
-  INSTALL_COMMAND ${HOST_ENV} ${CMAKE_MAKE_PROGRAM} install
-  BUILD_IN_SOURCE 1
-)
-
-ExternalProject_Add( curl
-  DEPENDS openssl
-  URL "http://curl.haxx.se/download/curl-7.46.0.tar.gz"
-  CONFIGURE_COMMAND ${HOST_ENV} ./configure --prefix=${TOOLS_DIR} --with-ssl #=${TOOLS_DIR}/lib #--enable-static --disable-shared
-  BUILD_COMMAND ${HOST_ENV} ${CMAKE_MAKE_PROGRAM} ${MAKE_JOBSERVER_FLAGS}
-  INSTALL_COMMAND ${HOST_ENV} ${CMAKE_MAKE_PROGRAM} install
-  BUILD_IN_SOURCE 1
-)
-
-ExternalProject_Add( cmake
-  DEPENDS curl
-  URL "https://cmake.org/files/v3.4/cmake-3.4.0.tar.gz"
-  #URL "http://www.cmake.org/files/v3.3/cmake-3.3.2.tar.gz"
-  CMAKE_ARGS
-    -DCMAKE_BUILD_TYPE=Release
-    -DCMAKE_INSTALL_PREFIX=${TOOLS_DIR}
-    -DCMAKE_USE_SYSTEM_LIBRARY_CURL:BOOL=ON
-    -DBUILD_TESTING:BOOL=OFF
-  #CONFIGURE_COMMAND ${HOST_ENV} ./configure --prefix=${TOOLS_DIR} --system-curl
-  #BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} ${MAKE_JOBSERVER_FLAGS}
-  #BUILD_IN_SOURCE 1
-)
-
 ExternalProject_Add( pugixml_download
   URL "https://github.com/zeux/pugixml/releases/download/v1.7/pugixml-1.7.tar.gz"
   CONFIGURE_COMMAND ${CMAKE_COMMAND} -E echo "skip"
@@ -82,10 +51,9 @@ ExternalProject_Add( pugixml
 #)
 
 ExternalProject_Add( src
-  DEPENDS cmake pugixml #devil
+  DEPENDS pugixml #devil
   DOWNLOAD_COMMAND ${CMAKE_COMMAND} -E echo "skip"
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src
-  CMAKE_COMMAND ${TOOLS_DIR}/bin/cmake
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCMAKE_MODULE_PATH=${CMAKE_CURRENT_SOURCE_DIR}/cmake

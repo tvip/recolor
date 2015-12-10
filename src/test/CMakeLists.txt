@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 3.2 )
+cmake_minimum_required( VERSION 2.8 )
 project( recolor-test )
 
 include( IdeFileStructure )
@@ -6,7 +6,7 @@ include( IdeFileStructure )
 find_package( Threads )
 list( APPEND libs ${CMAKE_THREAD_LIBS_INIT} )
 
-find_package( Boost COMPONENTS log unit_test_framework )
+#find_package( Boost COMPONENTS log unit_test_framework )
 
 if ( ${Boost_FOUND} )
 
