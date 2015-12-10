@@ -1,5 +1,5 @@
 Картинки читаются с помощью libdevil, проверял только с PNG
-`sudo apt-get install libdevil-dev`
+`sudo apt-get install libdevil-dev libglm-dev libboost-all-dev`
 
 
 Запуск веб сервера
